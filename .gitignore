@@ -1,0 +1,31 @@
+# Secrets and machine-specific configuration
+.env
+.env.*
+!.env.example
+/config/local.php
+/config/database.local.php
+*.pem
+*.key
+# PHP dependencies and runtime files
+/vendor/
+/.phpunit.result.cache
+/coverage/
+/storage/cache/
+/storage/logs/
+/storage/uploads/
+*.log
+# JavaScript dependencies and generated assets
+/node_modules/
+/public/assets/build/
+*.map
+# Local work and temporary files
+/work/
+/tmp/
+/temp/
+# IDE and operating-system files
+.idea/
+.vscode/
+*.code-workspace
+.DS_Store
+Thumbs.db
+desktop.ini
