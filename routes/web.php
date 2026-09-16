@@ -1,14 +1,43 @@
 <?php
 
+
 declare(strict_types=1);
 
-return [
-    "database" => [
-        'host' => '127.0.0.1',
-        'port' => 3306,
-        'name' => 'development',
-        'username' => 'root',
-        'password' => '',
-        'charset' => 'utf8mb4',
-    ],
-];
+use App\Controllers\SobreController;
+use App\Controllers\UbicacionController;
+use App\Controllers\TramiteController;
+use App\Core\Router;
+
+
+$router = new Router();
+
+$sobreController = new SobreController();
+$ubicacionController = new UbicacionController();
+$tramiteController = new TramiteController();
+
+$router->get('/ubicaciones', [
+    $ubicacionController,
+    'index',
+]);
+
+$router->get('/sobres', [
+    $sobreController,
+    'index',
+]);
+
+$router->get('/sobres(nuevo', [
+    $sobreController,
+    'create',
+]);
+
+$router->get('/tramites/sin-sobre', [
+    $tramiteController,
+    'searchWithoutSobre',
+]);
+
+$router->get('/sobres/{id_sobre}', [
+    $sobreController,
+    'show',
+]);
+
+return $router;
