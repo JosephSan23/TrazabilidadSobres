@@ -9,9 +9,8 @@ use PDO;
 final class UbicacionRepository
 {
     public function __construct(
-        private readonly PDO $connection
-    ) {
-    }
+        private PDO $connection
+    ) {}
 
     public function findAllActive(): array
     {
@@ -50,6 +49,33 @@ final class UbicacionRepository
 
         $statement->execute([
             'id_ubicacion' => $idUbicacion,
+        ]);
+
+        $ubicacion = $statement->fetch();
+
+        return $ubicacion === false ? null : $ubicacion;
+    }
+
+    public function findActiveByCode(string $codigo): ?array
+    {
+        $statement = $this->connection->prepare(
+            <<<'SQL'
+        SELECT
+            id_ubicacion,
+            codigo,
+            nombre,
+            descripcion,
+            tipo,
+            activo
+        FROM ubicaciones
+        WHERE codigo = :codigo
+          AND activo = 1
+        LIMIT 1
+        SQL
+        );
+
+        $statement->execute([
+            'codigo' => $codigo,
         ]);
 
         $ubicacion = $statement->fetch();

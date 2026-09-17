@@ -1,0 +1,129 @@
+:root {
+    --sidebar-width: 240px;
+    --sidebar-collapsed: 70px;
+    --sidebar-bg: #0d47a1;
+    --sidebar-text: #ffffff;
+    --sidebar-hover: rgba(255, 255, 255, 0.1);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
+
+/* ===== SIDEBAR ===== */
+.sidebar {
+    width: var(--sidebar-width);
+    height: 100vh;
+    background-color: var(--sidebar-bg);
+    position: fixed;
+    top: 0;
+    left: 0;
+    transition: width 0.3s ease;
+    overflow-x: hidden;
+    overflow-y: auto;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar.collapsed {
+    width: var(--sidebar-collapsed);
+}
+
+/* ===== HEADER / BOTÓN HAMBURGUESA ===== */
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    height: 60px;
+    flex-shrink: 0;
+}
+
+.toggle-btn {
+    background: none;
+    border: none;
+    color: var(--sidebar-text);
+    font-size: 20px;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+}
+
+.toggle-btn:hover {
+    background-color: var(--sidebar-hover);
+}
+
+/* ===== MENÚ ===== */
+.sidebar-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    flex: 1;
+}
+
+.sidebar-menu li a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    color: var(--sidebar-text);
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background-color 0.2s ease;
+}
+
+.sidebar-menu li a:hover {
+    background-color: var(--sidebar-hover);
+}
+
+.sidebar-menu li a i {
+    width: 20px;
+    text-align: center;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.sidebar.collapsed .link-text {
+    display: none;
+}
+
+/* Cuando está colapsado, centra los iconos */
+.sidebar.collapsed .sidebar-menu li a {
+    justify-content: center;
+    padding: 12px 0;
+}
+
+/* ===== CONTENIDO PRINCIPAL ===== */
+.content {
+    margin-left: var(--sidebar-width);
+    transition: margin-left 0.3s ease;
+    padding: 20px;
+    min-height: 100vh;
+}
+
+.sidebar.collapsed ~ .content {
+    margin-left: var(--sidebar-collapsed);
+}
+
+/* ===== RESPONSIVE (opcional) ===== */
+@media (max-width: 768px) {
+    .sidebar {
+        width: var(--sidebar-collapsed);
+    }
+    .sidebar .link-text {
+        display: none;
+    }
+    .sidebar-menu li a {
+        justify-content: center;
+        padding: 12px 0;
+    }
+    .content {
+        margin-left: var(--sidebar-collapsed);
+    }
+}

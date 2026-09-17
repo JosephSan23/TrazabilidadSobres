@@ -10,14 +10,53 @@ use InvalidArgumentException;
 final class SobreService
 {
     public function __construct(
-        private readonly SobreRepository $sobreRepository
-    ) {
-
-    }
+        private SobreRepository $sobreRepository
+    ) {}
 
     public function listAll(): array
     {
         return $this->sobreRepository->findAll();
+    }
+
+    /**
+     * @param array{busqueda?: string} $filters
+     *
+     * @return array{
+     *     records: array<int, array<string, mixed>>,
+     *     total: int,
+     *     page: int,
+     *     per_page: int,
+     *     total_pages: int
+     * }
+     */
+    public function listPaginated(
+        array $filters,
+        int $page = 1,
+        int $perPage = 25
+    ): array {
+        $page = max(1, $page);
+        $perPage = min(max(1, $perPage), 100);
+
+        $total = $this->sobreRepository->countPaginated($filters);
+        $totalPages = max(1, (int) ceil($total / $perPage));
+
+        if ($page > $totalPages) {
+            $page = $totalPages;
+        }
+
+        $offset = ($page - 1) * $perPage;
+
+        return [
+            'records' => $this->sobreRepository->findPaginated(
+                $filters,
+                $perPage,
+                $offset
+            ),
+            'total' => $total,
+            'page' => $page,
+            'per_page' => $perPage,
+            'total_pages' => $totalPages,
+        ];
     }
 
     public function findById(int $idSobre): ?array
@@ -46,19 +85,19 @@ final class SobreService
             );
         }
 
-        if($idUbicacion !== null && $idUbicacion <= 0) {
+        if ($idUbicacion !== null && $idUbicacion <= 0) {
             throw new InvalidArgumentException(
                 'La ubicacion seleccionada no es valida.'
             );
         }
 
-        if($idUsuarioResponsable !== null && $idUsuarioResponsable <= 0) {
+        if ($idUsuarioResponsable !== null && $idUsuarioResponsable <= 0) {
             throw new InvalidArgumentException(
                 'El usuario responsable no es valido.'
             );
         }
 
-        if($idUsuarioRegistra !== null && $idUsuarioRegistra <= 0) {
+        if ($idUsuarioRegistra !== null && $idUsuarioRegistra <= 0) {
             throw new InvalidArgumentException(
                 'El usuario que registra no es valido.'
             );
@@ -69,13 +108,13 @@ final class SobreService
         $nombreUsuarioRegistra = $this->normalizeText($nombreUsuarioRegistra);
         $observaciones = $this->normalizeText($observaciones);
 
-        if($idUbicacion == null && $nombreResponsable == null) {
+        if ($idUbicacion == null && $nombreResponsable == null) {
             throw new InvalidArgumentException(
                 'Debes indicar una ubicación o un responsable para el sobre.'
             );
         }
 
-        if($nombreUsuarioRegistra === null) {
+        if ($nombreUsuarioRegistra === null) {
             throw new InvalidArgumentException(
                 'Debes indicar quien registra el movimiento.'
             );
@@ -94,7 +133,7 @@ final class SobreService
 
     private function normalizeText(?string $value): ?string
     {
-        if($value === null) {
+        if ($value === null) {
             return null;
         }
 
@@ -102,6 +141,70 @@ final class SobreService
 
         return $value === '' ? null : $value;
     }
-}
 
-?>
+    public function move(
+        int $idSobre,
+        ?int $idUbicacionDestino,
+        ?string $nombreResponsableDestino,
+        ?int $idUsuarioResponsableDestino,
+        ?int $idUsuarioRegistra,
+        ?string $nombreUsuarioRegistra,
+        ?string $observaciones
+    ): void {
+        if ($idSobre <= 0) {
+            throw new InvalidArgumentException(
+                'El identificador del sobre no es válido.'
+            );
+        }
+
+        if ($idUbicacionDestino !== null && $idUbicacionDestino <= 0) {
+            throw new InvalidArgumentException(
+                'La ubicación destino no es válida.'
+            );
+        }
+
+        if (
+            $idUsuarioResponsableDestino !== null
+            && $idUsuarioResponsableDestino <= 0
+        ) {
+            throw new InvalidArgumentException(
+                'El responsable seleccionado no es válido.'
+            );
+        }
+
+        if ($idUsuarioRegistra !== null && $idUsuarioRegistra <= 0) {
+            throw new InvalidArgumentException(
+                'El usuario que registra no es válido.'
+            );
+        }
+
+        $nombreResponsableDestino = $this->normalizeText(
+            $nombreResponsableDestino
+        );
+
+        $nombreUsuarioRegistra = $this->normalizeText(
+            $nombreUsuarioRegistra
+        );
+
+        $observaciones = $this->normalizeText($observaciones);
+
+        if (
+            $idUbicacionDestino === null
+            && $nombreResponsableDestino === null
+        ) {
+            throw new InvalidArgumentException(
+                'Debes indicar una ubicación o un responsable destino.'
+            );
+        }
+
+        $this->sobreRepository->move(
+            $idSobre,
+            $idUbicacionDestino,
+            $nombreResponsableDestino,
+            $idUsuarioResponsableDestino,
+            $idUsuarioRegistra,
+            $nombreUsuarioRegistra,
+            $observaciones
+        );
+    }
+}

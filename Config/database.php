@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-function environmentValue(string $key, mixed $default = null): mixed
+function environmentValue(string $key): ?string
 {
     $value = getenv($key);
 
@@ -10,39 +10,62 @@ function environmentValue(string $key, mixed $default = null): mixed
         return $value;
     }
 
-    return $_ENV[$key] ?? $_SERVER[$key] ?? $default;
+    if (isset($_ENV[$key])) {
+        return (string) $_ENV[$key];
+    }
+
+    if (isset($_SERVER[$key])) {
+        return (string) $_SERVER[$key];
+    }
+
+    return null;
 }
 
-$environment = environmentValue('APP_ENV', 'development');
+$environment = environmentValue('APP_ENV') ?? 'development';
 
 $database = [
-    'host' => environmentValue('DB_HOST'),
-    'port' => environmentValue('DB_PORT', 3306),
-    'name' => environmentValue('DB_NAME'),
-    'username' => environmentValue('DB_USERNAME'),
-    'password' => environmentValue('DB_PASSWORD'),
-    'charset' => environmentValue('DB_CHARSET', 'utf8mb4'),
+    'host' => null,
+    'port' => 3306,
+    'name' => null,
+    'username' => null,
+    'password' => null,
+    'charset' => 'utf8mb4',
 ];
 
-$hasEnvironmentConfiguration = !empty($database['host'])
-    && !empty($database['name'])
-    && !empty($database['username']);
+$localConfigPath = __DIR__ . '/local.php';
 
-if (!$hasEnvironmentConfiguration && $environment === 'development') {
-    $localConfigPath = __DIR__ . '/local.php';
+if ($environment === 'development' && file_exists($localConfigPath)) {
+    $localConfig = require $localConfigPath;
 
-    if (file_exists($localConfigPath)) {
-        $localConfig = require $localConfigPath;
-        $database = array_merge($database, $localConfig['database'] ?? []);
+    if (isset($localConfig['database']) && is_array($localConfig['database'])) {
+        $database = array_replace(
+            $database,
+            $localConfig['database']
+        );
     }
 }
 
-$requiredKeys = ['host', 'port', 'name', 'username', 'password', 'charset'];
+$environmentKeys = [
+    'host' => 'DB_HOST',
+    'port' => 'DB_PORT',
+    'name' => 'DB_NAME',
+    'username' => 'DB_USERNAME',
+    'password' => 'DB_PASSWORD',
+    'charset' => 'DB_CHARSET',
+];
 
-foreach ($requiredKeys as $key) {
-    if ($database[$key] === null || $database[$key] === '') {
+foreach ($environmentKeys as $configKey => $environmentKey) {
+    $value = environmentValue($environmentKey);
+
+    if ($value !== null) {
+        $database[$configKey] = $value;
+    }
+}
+
+foreach (['host', 'name', 'username', 'password'] as $key) {
+    if ($database[$key] === null) {
         throw new RuntimeException(
-            sprintf('Falta la variable de entorno de base de datos: %s.', $key)
+            sprintf('Falta la configuración de base de datos: %s.', $key)
         );
     }
 }

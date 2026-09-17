@@ -32,14 +32,40 @@ final class Router
         $requestMethod = strtoupper($method);
         $requestPath = parse_url($uri, PHP_URL_PATH) ?: '/';
 
+        $scriptName = str_replace(
+            '\\',
+            '/',
+            $_SERVER['SCRIPT_NAME'] ?? ''
+        );
+
+        $basePath = rtrim(
+            preg_replace('#/index\.php$#', '', $scriptName) ?? '',
+            '/'
+        );
+
+        if (
+            $basePath !== ''
+            && str_starts_with($requestPath, $basePath)
+        ) {
+            $requestPath = substr(
+                $requestPath,
+                strlen($basePath)
+            ) ?: '/';
+        }
         foreach ($this->routes as $route) {
             if ($route['method'] !== $requestMethod) {
                 continue;
             }
 
-            $pattern = preg_replace(
-                '/\{([a-zA-Z][a-zA-Z0-9_]*)\}/',
-                '(?P<$1>[^/]+)',
+            $pattern = preg_replace_callback(
+                '/\{([a-zA-Z][a-zA-Z0-9_]*)\}|([^{}]+)/',
+                static function (array $matches): string {
+                    if (isset($matches[1]) && $matches[1] !== '') {
+                        return '(?P<' . $matches[1] . '>[^/]+)';
+                    }
+
+                    return preg_quote($matches[2], '#');
+                },
                 $route['path']
             );
 

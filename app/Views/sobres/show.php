@@ -3,12 +3,29 @@
 declare(strict_types=1);
 
 /** @var array<string, mixed> $sobre */
+/** @var array<int, array<string, mixed>> $historialMovimientos */
+/** @var array<int, array<string, mixed>> $custodiasActivas */
+/** @var array<int, array<string, mixed>> $checklistDocumentos */
 
-$escape = static fn (mixed $value): string => htmlspecialchars(
+$escape = static fn(mixed $value): string => htmlspecialchars(
     (string) $value,
     ENT_QUOTES,
     'UTF-8'
 );
+
+$statusClass = [
+    'PRESENTE' => 'bg-success',
+    'FUERA_DEL_SOBRE' => 'bg-warning text-dark',
+    'EXTRAVIADO' => 'bg-danger',
+    'FALTANTE' => 'bg-secondary',
+];
+
+$statusLabel = [
+    'PRESENTE' => 'Disponible',
+    'FUERA_DEL_SOBRE' => 'Fuera del sobre',
+    'EXTRAVIADO' => 'Extraviado',
+    'FALTANTE' => 'Faltante',
+];
 ?>
 
 <section class="custodia-page">
@@ -24,6 +41,12 @@ $escape = static fn (mixed $value): string => htmlspecialchars(
 
         <a href="/sobres" class="btn btn-outline-secondary">
             Volver al listado
+        </a>
+
+        <a
+            href="/sobres/<?= $escape($sobre['id_sobre']) ?>/mover"
+            class="btn btn-primary">
+            Mover sobre
         </a>
     </div>
 
@@ -98,12 +121,204 @@ $escape = static fn (mixed $value): string => htmlspecialchars(
 
     <div class="custodia-card mt-4">
         <div class="custodia-card__body">
-            <h2 class="h5">Próximamente</h2>
+            <h2 class="h5 mb-3">Checklist de documentos</h2>
 
-            <p class="mb-0">
-                En esta pantalla añadiremos el checklist de documentos,
-                documentos fuera del sobre y la línea de tiempo de movimientos.
-            </p>
+            <?php if ($checklistDocumentos === []): ?>
+                <p class="mb-0 text-muted">
+                    No se encontraron documentos requeridos para este trámite.
+                </p>
+            <?php else: ?>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Documento</th>
+                                <th>Tipo</th>
+                                <th class="text-center">Estado físico</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            <?php foreach ($checklistDocumentos as $documento): ?>
+                                <?php
+                                $estado = $documento['estado_checklist'];
+                                $badgeClass = $statusClass[$estado] ?? 'bg-secondary';
+                                $label = $statusLabel[$estado] ?? $estado;
+                                ?>
+
+                                <tr>
+                                    <td>
+                                        <?= $escape($documento['nombre_documento']) ?>
+                                    </td>
+
+                                    <td>
+                                        <?= $escape($documento['tipo_documento']) ?>
+                                    </td>
+
+                                    <td class="text-center">
+                                        <span class="badge <?= $escape($badgeClass) ?>">
+                                            <?= $escape($label) ?>
+                                        </span>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <div class="custodia-card mt-4">
+        <div class="custodia-card__body">
+            <h2 class="h5 mb-3">Documentos fuera del sobre</h2>
+
+            <?php if ($custodiasActivas === []): ?>
+                <p class="mb-0 text-muted">
+                    No hay documentos actualmente fuera de este sobre.
+                </p>
+            <?php else: ?>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Documento</th>
+                                <th>Estado</th>
+                                <th>Ubicación</th>
+                                <th>Custodio</th>
+                                <th>Salida</th>
+                                <th>Devolución esperada</th>
+                                <th>Observaciones</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            <?php foreach ($custodiasActivas as $custodia): ?>
+                                <tr>
+                                    <td>
+                                        <?= $escape($custodia['nombre_documento']) ?>
+                                    </td>
+
+                                    <td>
+                                        <?= $escape($custodia['estado']) ?>
+                                    </td>
+
+                                    <td>
+                                        <?= $escape(
+                                            $custodia['nombre_ubicacion']
+                                                ?? 'Sin ubicación asignada'
+                                        ) ?>
+                                    </td>
+
+                                    <td>
+                                        <?= $escape(
+                                            $custodia['nombre_custodio']
+                                                ?? 'Sin custodio asignado'
+                                        ) ?>
+                                    </td>
+
+                                    <td>
+                                        <?= $escape($custodia['fecha_salida']) ?>
+                                    </td>
+
+                                    <td>
+                                        <?= $escape(
+                                            $custodia['fecha_devolucion_esperada']
+                                                ?? '-'
+                                        ) ?>
+                                    </td>
+
+                                    <td>
+                                        <?= $escape(
+                                            $custodia['observaciones']
+                                                ?? '-'
+                                        ) ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <div class="custodia-card mt-4">
+        <div class="custodia-card__body">
+            <h2 class="h5 mb-3">Línea de tiempo</h2>
+
+            <?php if ($historialMovimientos === []): ?>
+                <p class="mb-0 text-muted">
+                    Este sobre todavía no tiene movimientos registrados.
+                </p>
+            <?php else: ?>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Evento</th>
+                                <th>Documento</th>
+                                <th>Origen</th>
+                                <th>Destino</th>
+                                <th>Registrado por</th>
+                                <th>Observaciones</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            <?php foreach ($historialMovimientos as $movimiento): ?>
+                                <tr>
+                                    <td>
+                                        <?= $escape($movimiento['fecha_evento']) ?>
+                                    </td>
+
+                                    <td>
+                                        <?= $escape($movimiento['tipo_evento']) ?>
+                                    </td>
+
+                                    <td>
+                                        <?= $escape(
+                                            $movimiento['nombre_documento']
+                                                ?? 'Movimiento de sobre'
+                                        ) ?>
+                                    </td>
+
+                                    <td>
+                                        <?= $escape(
+                                            $movimiento['nombre_ubicacion_origen']
+                                                ?? $movimiento['nombre_responsable_origen']
+                                                ?? '-'
+                                        ) ?>
+                                    </td>
+
+                                    <td>
+                                        <?= $escape(
+                                            $movimiento['nombre_ubicacion_destino']
+                                                ?? $movimiento['nombre_responsable_destino']
+                                                ?? '-'
+                                        ) ?>
+                                    </td>
+
+                                    <td>
+                                        <?= $escape(
+                                            $movimiento['nombre_usuario_registra']
+                                                ?? '-'
+                                        ) ?>
+                                    </td>
+
+                                    <td>
+                                        <?= $escape(
+                                            $movimiento['observaciones']
+                                                ?? '-'
+                                        ) ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            <?php endif; ?>
         </div>
     </div>
 </section>

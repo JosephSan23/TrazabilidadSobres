@@ -10,27 +10,34 @@ use InvalidArgumentException;
 final class TramiteService
 {
     public function __construct(
-        private readonly TramiteRepository $tramiteRepository
-    ) {
-    }
+        private TramiteRepository $tramiteRepository
+    ) {}
 
-    public function searchWithoutSobreByPlaca(string $placa): array
-    {
-        $placa = trim($placa);
+    public function listWithoutSobrePaginated(
+        array $filters,
+        int $page = 1,
+        int $perPage = 25
+    ): array {
+        $page = max(1, $page);
+        $perPage = min(max(1, $perPage), 100);
 
-        if ($placa === '') {
-            throw new InvalidArgumentException(
-                'Debes ingresar una placa para realizar la búsqueda.'
-            );
+        $total = $this->tramiteRepository->countWithoutSobre($filters);
+        $totalPages = max(1, (int) ceil($total / $perPage));
+
+        if ($page > $totalPages) {
+            $page = $totalPages;
         }
 
-        if (mb_strlen($placa) < 2) {
-            throw new InvalidArgumentException(
-                'Ingresa al menos dos caracteres de la placa.'
-            );
-        }
+        $offset = ($page - 1) * $perPage;
 
-        return $this->tramiteRepository->findWithoutSobreByPlaca($placa);
+        return [
+            'records' => $this->tramiteRepository
+                ->findWithoutSobrePaginated($filters, $perPage, $offset),
+            'total' => $total,
+            'page' => $page,
+            'per_page' => $perPage,
+            'total_pages' => $totalPages,
+        ];
     }
 
     public function findWithoutSobreById(int $idTramite): ?array
@@ -42,5 +49,36 @@ final class TramiteService
         }
 
         return $this->tramiteRepository->findWithoutSobreById($idTramite);
+    }
+
+
+    public function findWithoutSobreByIds(array $idsTramite): array
+    {
+        $idsValidos = [];
+
+        foreach ($idsTramite as $idTramite) {
+            $idTramite = filter_var(
+                $idTramite,
+                FILTER_VALIDATE_INT
+            );
+
+            if ($idTramite === false || $idTramite <= 0) {
+                continue;
+            }
+
+            $idsValidos[] = (int) $idTramite;
+        }
+
+        $idsValidos = array_values(array_unique($idsValidos));
+
+        if ($idsValidos === []) {
+            throw new InvalidArgumentException(
+                'Debes seleccionar al menos un trámite válido.'
+            );
+        }
+
+        return $this->tramiteRepository->findWithoutSobreByIds(
+            $idsValidos
+        );
     }
 }

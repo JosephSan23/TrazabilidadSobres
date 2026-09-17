@@ -1,23 +1,22 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace App\Services;
 
 use App\Repositories\UbicacionRepository;
 use InvalidArgumentException;
 
-final class UbicacionService {
-    public function __construct(private readonly UbicacionRepository $ubiacionRepository)
+final class UbicacionService
+{
+    public function __construct(private UbicacionRepository $ubicacionRepository) {}
+
+    public function listActive(): array
     {
+        return $this->ubicacionRepository->findAllActive();
     }
 
-    public function listActive(): array 
-    {
-        return $this->ubiacionRepository->findAllActive();
-    }
-
-    public function findById(int $idUbicacion): ?array 
+    public function findById(int $idUbicacion): ?array
     {
         if ($idUbicacion <= 0) {
             throw new InvalidArgumentException(
@@ -25,6 +24,21 @@ final class UbicacionService {
             );
         }
 
-        return $this->ubiacionRepository->findById($idUbicacion);
+        return $this->ubicacionRepository->findById($idUbicacion);
+    }
+
+    public function findActiveByCode(string $codigo): ?array
+    {
+        $codigo = trim($codigo);
+
+        if ($codigo === '') {
+            throw new InvalidArgumentException(
+                'El código de ubicación no es válido.'
+            );
+        }
+
+        return $this->ubicacionRepository->findActiveByCode(
+            $codigo
+        );
     }
 }

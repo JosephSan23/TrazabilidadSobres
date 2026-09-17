@@ -10,9 +10,8 @@ use RuntimeException;
 final class SobreRepository
 {
     public function __construct(
-        private readonly PDO $connection
-    ) {
-    }
+        private PDO $connection
+    ) {}
 
 
     public function findAll(): array
@@ -113,5 +112,135 @@ final class SobreRepository
         } finally {
             $statement->closeCursor();
         }
+    }
+
+    public function move(
+        int $idSobre,
+        ?int $idUbicacionDestino,
+        ?string $nombreResponsableDestino,
+        ?int $idUsuarioResponsableDestino,
+        ?int $idUsuarioRegistra,
+        ?string $nombreUsuarioRegistra,
+        ?string $observaciones
+    ): void {
+        $statement = $this->connection->prepare(
+            'CALL sp_custodia_mover_sobre(?, ?, ?, ?, ?, ?, ?)'
+        );
+
+        try {
+            $statement->execute([
+                $idSobre,
+                $idUbicacionDestino,
+                $nombreResponsableDestino,
+                $idUsuarioResponsableDestino,
+                $idUsuarioRegistra,
+                $nombreUsuarioRegistra,
+                $observaciones,
+            ]);
+        } finally {
+            $statement->closeCursor();
+        }
+    }
+
+    /**
+     * @param array{busqueda?: string} $filters
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function findPaginated(
+        array $filters,
+        int $limit,
+        int $offset
+    ): array {
+        [$where, $parameters] = $this->buildListFilters($filters);
+
+        $sql = <<<'SQL'
+    SELECT
+        s.id_sobre,
+        s.codigo_sobre,
+        s.estado,
+        s.nombre_responsable,
+        s.fecha_creacion,
+        s.fecha_ultimo_movimiento,
+        t.id_tramite,
+        v.placa,
+        u.codigo AS codigo_ubicacion,
+        u.nombre AS nombre_ubicacion
+    FROM sobre s
+    INNER JOIN tramite t
+        ON t.id_tramite = s.id_tramite
+    INNER JOIN vehiculo v
+        ON v.id_vehiculo = t.id_vehiculo
+    LEFT JOIN ubicaciones u
+        ON u.id_ubicacion = s.id_ubicacion
+    SQL;
+
+        $sql .= $where;
+        $sql .= ' ORDER BY s.fecha_ultimo_movimiento DESC, s.id_sobre DESC';
+        $sql .= ' LIMIT :limit OFFSET :offset';
+
+        $statement = $this->connection->prepare($sql);
+
+        foreach ($parameters as $name => $value) {
+            $statement->bindValue($name, $value, PDO::PARAM_STR);
+        }
+
+        $statement->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $statement->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $statement->execute();
+
+        return $statement->fetchAll();
+    }
+
+    /**
+     * @param array{busqueda?: string} $filters
+     */
+    public function countPaginated(array $filters): int
+    {
+        [$where, $parameters] = $this->buildListFilters($filters);
+
+        $sql = <<<'SQL'
+    SELECT COUNT(*)
+    FROM sobre s
+    INNER JOIN tramite t
+        ON t.id_tramite = s.id_tramite
+    INNER JOIN vehiculo v
+        ON v.id_vehiculo = t.id_vehiculo
+    LEFT JOIN ubicaciones u
+        ON u.id_ubicacion = s.id_ubicacion
+    SQL;
+
+        $statement = $this->connection->prepare($sql . $where);
+        $statement->execute($parameters);
+
+        return (int) $statement->fetchColumn();
+    }
+
+    private function buildListFilters(array $filters): array
+    {
+        $conditions = [];
+        $parameters = [];
+
+        $busqueda = trim($filters['busqueda'] ?? '');
+
+        if ($busqueda !== '') {
+            $conditions[] = '(
+            s.codigo_sobre LIKE :busqueda1
+            OR v.placa LIKE :busqueda2
+            OR CAST(t.id_tramite AS CHAR) LIKE :busqueda3
+        )';
+
+            $valor = '%' . $busqueda . '%';
+            $parameters['busqueda1'] = $valor;
+            $parameters['busqueda2'] = $valor;
+            $parameters['busqueda3'] = $valor;
+        }
+
+        return [
+            $conditions === []
+                ? ''
+                : ' WHERE ' . implode(' AND ', $conditions),
+            $parameters,
+        ];
     }
 }
