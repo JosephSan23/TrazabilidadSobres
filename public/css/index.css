@@ -1,162 +1,500 @@
-/* ==========================================================================
-   Custodia de sobres — estilos
-   ========================================================================== */
-
+/* ==========================================
+   1. Estructura General y Página
+   ========================================== */
 .custodia-page {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-    padding: 2rem 1.5rem; /* más aire arriba, como en el datatable de referencia */
-    color: #2b2b2b;
-    margin-left: var(--sidebar-width, 240px); /* deja espacio para el sidebar fijo */
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 2rem 1.5rem;
+  color: #2b2b2b;
+  margin-left: var(--sidebar-width, 240px);
 }
 
 .custodia-page__header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    flex-wrap: wrap;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
+.custodia-page__title-group h1,
 .custodia-page__header h1 {
-    margin: 0 0 0.25rem;
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: #1f1f1f;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 4px;
 }
 
+.custodia-page__title-group p,
 .custodia-page__header p {
-    margin: 0;
-    color: #6b6b6b;
-    font-size: 0.9rem;
+  color: #6b7280;
+  font-size: 0.9rem;
+  margin: 0;
 }
 
-/* Botón principal */
-.btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
-    font-size: 0.875rem;
-    font-weight: 500;
-    text-decoration: none;
-    border: 1px solid transparent;
-    cursor: pointer;
-    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+.custodia-page__header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
-.btn-primary {
-    background-color: #3a3a3a;
-    border-color: #3a3a3a;
-    color: #ffffff;
+/* ==========================================
+   2. Componentes de Barra y Buscador
+   ========================================== */
+.custodia-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
-.btn-primary:hover {
-    background-color: #545454;
-    border-color: #545454;
+.custodia-search {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
 }
 
-.btn-outline-primary,
-.btn-outline-secondary {
-    background-color: transparent;
-    border-color: #b5b5b5;
-    color: #3a3a3a;
+.custodia-search__icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+  font-size: 0.85rem;
+  pointer-events: none;
 }
 
-.btn-outline-primary:hover,
-.btn-outline-secondary:hover {
-    background-color: #f0f0f0;
-    border-color: #8f8f8f;
+.custodia-search .form-control {
+  width: 100%;
+  height: 40px;
+  padding: 0 14px 0 38px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  font-size: 0.875rem;
+  color: #2b2b2b;
+  line-height: 40px;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.custodia-search .form-control::placeholder {
+  color: #a3a3a3;
+}
+
+.custodia-search .form-control:focus {
+  outline: none;
+  background-color: #ffffff;
+  border-color: #c7d2fe;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+/* ==========================================
+   3. Pestañas de Filtro (Tabs)
+   ========================================== */
+/* Contenedor: todos los tabs pegados en un solo grupo */
+.filter-tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  background: #f3f4f6;
+  border-radius: 999px;
+  padding: 4px;
+}
+
+.filter-tab {
+  padding: 7px 16px;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #9ca3af;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.filter-tab:hover {
+  color: #4b5563;
+}
+
+/* Estado activo por defecto (fallback si no hay color específico) */
+.filter-tab.is-active {
+  background: #111827;
+  color: #fff;
+}
+
+/* Colores específicos por estado, cuando está activo */
+.filter-tab--todos.is-active {
+  background: #0f172a;
+  color: #fff;
+}
+
+.filter-tab--gestion.is-active {
+  background: #fde047;
+  color: #1a1a1a;
+}
+
+.filter-tab--incompletos.is-active {
+  background: #fca5a5;
+  color: #7f1d1d;
+}
+
+.filter-tab--radicados.is-active {
+  background: #93c5fd;
+  color: #1e3a8a;
+}
+
+.filter-tab--finalizados.is-active {
+  background: #86efac;
+  color: #14532d;
+}
+
+.filter-tab--creados.is-active {
+  background: #d8b4fe;
+  color: #581c87;
+}
+
+.filter-tab--completos.is-active {
+  background: #a5f3fc;
+  color: #164e63;
+}
+
+/* ==========================================
+   4. Botones
+   ========================================== */
+.btn-custodia {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-custodia--primary {
+  background: #111827;
+  color: #fff;
+}
+
+.btn-custodia--primary:hover {
+  background: #1f2937;
+  color: #fff;
 }
 
 .btn-sm {
-    padding: 0.3rem 0.65rem;
-    font-size: 0.8rem;
+  padding: 0.3rem 0.65rem;
+  font-size: 0.8rem;
 }
 
-/* Tarjeta contenedora */
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: transparent;
+  border: none;
+  color: #3a5aa8;
+  padding: 0;
+  font-size: 0.85rem;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.btn-icon:hover {
+  text-decoration: underline;
+  color: #2c4680;
+}
+
+/* ==========================================
+   5. Tarjetas Contenedoras y Resultados
+   ========================================== */
 .custodia-card {
-    background-color: #ffffff;
-    border: 1px solid #e2e2e2;
-    border-radius: 8px;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-    overflow: hidden;
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
 }
 
 .custodia-card__body {
-    padding: 1rem;
-    overflow-x: auto;
+  padding: 1rem;
 }
 
-/* ===== Barra de título oscura, estilo datatable ===== */
-.custodia-card__header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    padding: 0.85rem 1.25rem;
-    background-color: #1e1e1e;
-    flex-wrap: wrap;
+.custodia-results-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-bottom: 1rem;
 }
 
-.custodia-card__header h2 {
-    margin: 0;
-    font-size: 1rem;
-    font-weight: 600;
-    color: #ffffff;
+.custodia-results-row p {
+  color: #374151;
+  font-size: 0.9rem;
+  margin: 0;
 }
 
-.custodia-card__header-meta {
-    margin: 0;
-    font-size: 0.85rem;
-    color: #cfcfcf;
+.custodia-results-row__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-/* Fila de filtros/acciones dentro de la tarjeta (como "Show / Search" del datatable) */
-.custodia-card__toolbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    flex-wrap: wrap;
-    padding: 1rem 1.25rem;
-    border-bottom: 1px solid #ececec;
+.custodia-results-row__left {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
 }
 
-/* Tabla */
-.table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.9rem;
+.custodia-results-row__left .custodia-toolbar {
+  margin: 0;
 }
 
-.table thead th {
-    text-align: left;
-    padding: 0.65rem 0.75rem;
-    background-color: #f5f5f5;
-    color: #4a4a4a;
-    font-weight: 600;
-    border-bottom: 2px solid #e0e0e0;
-    white-space: nowrap;
+.custodia-results-row__left .custodia-search {
+  width: 280px;
+  max-width: 100%;
 }
 
-.table tbody td {
-    padding: 0.6rem 0.75rem;
-    border-bottom: 1px solid #ececec;
-    color: #333333;
-    vertical-align: middle;
+.custodia-results-row__left p {
+  margin: 0;
+  line-height: normal;
 }
 
-.table-striped tbody tr:nth-child(even) {
-    background-color: #fafafa;
+/* ==========================================
+   6. Grid de Cards de Custodia e Items
+   ========================================== */
+.custodia-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.25rem;
 }
 
-.table-hover tbody tr:hover {
-    background-color: #f0f0f0;
+@media (max-width: 992px) {
+  .custodia-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
-.text-center {
-    text-align: center;
+@media (max-width: 640px) {
+  .custodia-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.custodia-card-item {
+  background-color: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.custodia-card-item__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem 0.6rem;
+  background-color: #ffffff;
+  border-bottom: 1px solid #f0f0f0;
+  margin-bottom: 0.5rem;
+}
+
+.custodia-card-item__label {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #ffffff;
+  background-color: #1e1e1e;
+  padding: 0.2rem 0.55rem;
+  border-radius: 5px;
+}
+
+.custodia-card-item__body {
+  padding: 0.9rem 1.1rem;
+  flex: 1;
+}
+
+.custodia-card-item__title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding-bottom: 0.6rem;
+  margin-bottom: 0.6rem;
+  border-bottom: 1px solid #ececec;
+}
+
+.custodia-card-item__title h3 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.custodia-card-item__fields {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.custodia-card-item__fields li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: #4a4a4a;
+}
+
+.custodia-card-item__fields li > .field-icon-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.custodia-card-item__fields i {
+  color: #9a9a9a;
+  font-size: 0.85rem;
+  width: 1rem;
+  text-align: center;
+}
+
+.custodia-card-item__fields .field-label {
+  color: #8a8a8a;
+}
+
+.custodia-card-item__fields .field-value {
+  color: #2b2b2b;
+  font-weight: 500;
+}
+
+.custodia-card-item__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.9rem 1.1rem;
+  border-top: 1px solid #ececec;
+  margin-top: 0.25rem;
+}
+
+/* ==========================================
+   7. Badges, Etiquetas y Tags de Estado
+   ========================================== */
+.badge-placa {
+  display: inline-block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #000;
+  background-color: #fff006;
+  border: 1px solid #000;
+  padding: 0.15rem 0.55rem;
+  border-radius: 6px;
+}
+
+.tag-ubicacion {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.78rem;
+  font-weight: 500;
+  padding: 0.2rem 0.6rem;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+.tag-ubicacion--ok {
+  color: #2a5aa8;
+  background-color: #eaf1ff;
+  border: 1px solid #cfe0ff;
+}
+
+.tag-ubicacion--pendiente {
+  color: #9a6400;
+  background-color: #fff3d6;
+  border: 1px solid #ffe2a3;
+}
+
+.custodia-corner-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.custodia-corner-tag--activo i,
+.custodia-corner-tag--pendiente i {
+  font-size: 0.65rem;
+}
+
+.custodia-corner-tag--activo {
+  color: #3a5aa8;
+}
+
+.custodia-corner-tag--pendiente {
+  color: #9a6400;
+}
+
+.badge-estado {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+}
+
+.badge-estado i {
+  font-size: 0.5rem;
+}
+
+.badge-estado--creado {
+  color: #1c8a4b;
+  background-color: #e5f7ec;
+}
+
+.badge-estado--prestado {
+  color: #a85a00;
+  background-color: #fff0dc;
+}
+
+.badge-estado--faltante {
+  color: #c0392b;
+  background-color: #fdecea;
+}
+
+/* ==========================================
+   8. Utilidades y Textos Secundarios
+   ========================================== */
+.text-muted-italic {
+  color: #9a9a9a;
+  font-style: italic;
+}
+
+.pagination-info {
+  font-size: 0.82rem;
+  color: #6b6b6b;
+  margin-top: 0.5rem;
 }

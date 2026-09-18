@@ -39,8 +39,6 @@ $escape = static fn(mixed $value): string => htmlspecialchars(
                     <img src="<?= $escape(Url::to('/img/logo-azul-asiste-mas.png')) ?>" alt="Logo">
                 </div>
 
-                <div class="ficha-custodia__divider"></div>
-
                 <dl class="ficha-custodia__data">
                     <div>
                         <dt>Placa:</dt>

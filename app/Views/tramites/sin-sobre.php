@@ -49,12 +49,12 @@ $lastRecord = min(
         </div>
     </div>
 
-    <div class="custodia-card mb-4">
+    <div class="custodia-card">
         <div class="custodia-card__body">
             <form
                 method="get"
                 action="<?= $escape(Url::to('/tramites/sin-sobre')) ?>"
-                class="row align-items-end" data-pending-filter-form>
+                class="row align-items-end custodia-toolbar" data-pending-filter-form>
                 <div class="col-md-4 mb-3 mb-md-0">
                     <label for="placa" class="form-label">
                         Placa
@@ -93,11 +93,9 @@ $lastRecord = min(
                     </a>
                 </div>
             </form>
-        </div>
-    </div>
 
-    <div class="custodia-card">
-        <div class="custodia-card__body">
+            <hr class="custodia-divider">
+
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <p class="mb-0">
                     <strong><?= $escape($totalTramites) ?></strong>
