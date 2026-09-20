@@ -70,6 +70,18 @@ final class SobreService
         return $this->sobreRepository->findById($idSobre);
     }
 
+    public function findByCodigo(string $codigoSobre): ?array {
+        $codigo_sobre = trim($codigoSobre);
+
+        if ($codigoSobre === '') {
+            throw new InvalidArgumentException(
+                'El código del sobre no es valido.'
+            );
+        }
+
+        return $this->sobreRepository->findByCodigoSobre($codigoSobre);
+    }
+
     public function create(
         int $idTramite,
         ?int $idUbicacion,

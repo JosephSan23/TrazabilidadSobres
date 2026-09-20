@@ -142,6 +142,42 @@ final class SobreController
         ]);
     }
 
+    public function buscarPorCodigo(array $parameters = []): void
+{
+    header('Content-Type: application/json; charset=UTF-8');
+
+    $codigo = trim((string) ($_GET['codigo'] ?? ''));
+
+    if ($codigo === '') {
+        http_response_code(400);
+        echo json_encode(['error' => 'Debes enviar un código.']);
+        return;
+    }
+
+    try {
+        $sobre = $this->sobreService->findByCodigo($codigo);
+    } catch (\InvalidArgumentException $exception) {
+        http_response_code(400);
+        echo json_encode(['error' => $exception->getMessage()]);
+        return;
+    }
+
+    if ($sobre === null) {
+        http_response_code(404);
+        echo json_encode(['error' => 'No se encontró ningún sobre con ese código.']);
+        return;
+    }
+
+    echo json_encode([
+        'id_sobre' => (int) $sobre['id_sobre'],
+        'id_tramite' => (int) $sobre['id_tramite'],
+        'codigo_sobre' => $sobre['codigo_sobre'],
+        'placa' => $sobre['placa'],
+        'estado' => $sobre['estado'],
+        'responsable' => $sobre['nombre_responsable'] ?? 'Sin responsable',
+    ]);
+}
+
     public function moveForm(array $parameters = []): void
     {
         $idSobre = (int) ($parameters['id_sobre'] ?? 0);

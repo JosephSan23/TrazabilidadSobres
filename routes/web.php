@@ -27,7 +27,7 @@ $router->get('/sobres', [
     'index',
 ]);
 
-$router->get('/sobres(nuevo', [
+$router->get('/sobres/nuevo', [
     $sobreController,
     'create',
 ]);
@@ -35,6 +35,11 @@ $router->get('/sobres(nuevo', [
 $router->get('/tramites/sin-sobre', [
     $tramiteController,
     'searchWithoutSobre',
+]);
+
+$router->get('/sobres/buscar-por-codigo', [
+    $sobreController,
+    'buscarPorCodigo',
 ]);
 
 $router->get('/sobres/{id_sobre}', [

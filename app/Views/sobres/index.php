@@ -182,9 +182,18 @@ $lastRecord = min(
                                 <span class="badge-estado badge-estado--<?= strtolower($escape($sobre['estado'])) ?>">
                                     ● <?= $escape($sobre['estado']) ?>
                                 </span>
-                                <a href="<?= $escape(Url::to('/sobres/' . $sobre['id_sobre'])) ?>" class="btn-icon">
-                                    <i class="bi bi-eye"></i> Ver detalle
-                                </a>
+                                <button
+                                    type="button"
+                                    class="btn-icon"
+                                    data-abrir-modal-opciones
+                                    data-id-sobre="<?= $escape($sobre['id_sobre']) ?>"
+                                    data-id-tramite="<?= $escape($sobre['id_tramite']) ?>"
+                                    data-codigo-sobre="<?= $escape($sobre['codigo_sobre']) ?>"
+                                    data-placa="<?= $escape($sobre['placa']) ?>"
+                                    data-estado="<?= $escape($sobre['estado']) ?>"
+                                    data-responsable="<?= $escape($sobre['nombre_responsable'] ?? 'Sin responsable') ?>">
+                                    <i class="bi bi-sliders"></i> Opciones
+                                </button>
                             </div>
                         </div>
                     <?php endforeach; ?>
@@ -207,3 +216,10 @@ $lastRecord = min(
     src="<?= $escape(
                 Url::to('/js/auto-filter.js', ['v' => '1'])
             ) ?>"></script>
+
+
+<script src="/js/modo-escaneo.js"></script>
+<script src="/js/modales/modal-opciones.js"></script>
+<script src="/js/paneles/lote.js"></script>
+<script src="/js/modales/sobres-card.js"></script>
+<script src="/js/scanner.js"></script>

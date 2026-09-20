@@ -72,6 +72,33 @@ final class SobreRepository
         return $sobre === false ? null : $sobre;
     }
 
+    public function findByCodigoSobre(string $codigoSobre): ?array
+    {
+        $statement = $this->connection->prepare(
+            'SELECT
+                s.id_sobre,
+                s.id_tramite,
+                s.codigo_sobre,
+                s.estado,
+                s.nombre_responsable,
+                s.id_usuario_responsable,
+                v.placa
+            FROM sobre s
+            INNER JOIN tramite t ON t.id_tramite = s.id_tramite
+            INNER JOIN vehiculo v ON v.id_vehiculo = t.id_vehiculo
+            WHERE s.codigo_sobre = :codigo_sobre
+            LIMIT 1'
+        );
+
+        $statement->execute([
+            'codigo_sobre' => $codigoSobre,
+        ]);
+
+        $sobre = $statement->fetch();
+
+        return $sobre === false ? null : $sobre;
+    }
+
 
     public function create(
         int $idTramite,
