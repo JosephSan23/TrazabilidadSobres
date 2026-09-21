@@ -57,4 +57,5 @@ final class UsuarioRepository
 
         return $usuario === false ? null : $usuario;
     }
+    
 }

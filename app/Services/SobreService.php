@@ -70,7 +70,8 @@ final class SobreService
         return $this->sobreRepository->findById($idSobre);
     }
 
-    public function findByCodigo(string $codigoSobre): ?array {
+    public function findByCodigo(string $codigoSobre): ?array
+    {
         $codigo_sobre = trim($codigoSobre);
 
         if ($codigoSobre === '') {
@@ -217,6 +218,90 @@ final class SobreService
             $idUsuarioRegistra,
             $nombreUsuarioRegistra,
             $observaciones
+        );
+    }
+
+    public function assignBulk(
+        array $idsSobre,
+        int $idUsuarioResponsable,
+        string $nombreResponsable,
+        int $idUsuarioRegistra,
+        string $nombreUsuarioRegistra
+    ): int {
+        if ($idsSobre === []) {
+            throw new InvalidArgumentException(
+                'Debes seleccionar al menos un sobre.'
+            );
+        }
+
+        if ($idUsuarioResponsable <= 0) {
+            throw new InvalidArgumentException(
+                'El usuario responsable no es válido.'
+            );
+        }
+
+        $nombreResponsable = trim($nombreResponsable);
+        $nombreUsuarioRegistra = trim($nombreUsuarioRegistra);
+
+        if ($nombreResponsable === '' || $nombreUsuarioRegistra === '') {
+            throw new InvalidArgumentException(
+                'Faltan datos del responsable o de quién registra.'
+            );
+        }
+
+        $idsValidos = array_values(array_filter(
+            array_map('intval', $idsSobre),
+            static fn(int $id): bool => $id > 0
+        ));
+
+        if ($idsValidos === []) {
+            throw new InvalidArgumentException(
+                'No se recibió ningún identificador de sobre válido.'
+            );
+        }
+
+        return $this->sobreRepository->assignResponsableBulk(
+            $idsValidos,
+            $idUsuarioResponsable,
+            $nombreResponsable,
+            $idUsuarioRegistra,
+            $nombreUsuarioRegistra
+        );
+    }
+
+    public function assignResponsible(
+        int $idSobre,
+        int $idResponsable,
+        int $idUsuarioRegistra,
+        string $nombreUsuarioRegistra
+    ): void {
+        if ($idSobre < 1) {
+            throw new InvalidArgumentException('El sobre es inválido.');
+        }
+
+        if ($idResponsable < 1) {
+            throw new InvalidArgumentException(
+                'La persona responsable es inválida.'
+            );
+        }
+
+        if ($idUsuarioRegistra < 1) {
+            throw new InvalidArgumentException(
+                'El usuario que registra es inválido.'
+            );
+        }
+
+        $sobre = $this->sobreRepository->findById($idSobre);
+
+        if ($sobre === null) {
+            throw new \RuntimeException('El sobre no existe.');
+        }
+
+        $this->sobreRepository->assignResponsible(
+            $idSobre,
+            $idResponsable,
+            $idUsuarioRegistra,
+            $nombreUsuarioRegistra
         );
     }
 }

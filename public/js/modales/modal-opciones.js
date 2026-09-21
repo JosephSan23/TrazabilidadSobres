@@ -15,6 +15,9 @@
     wrapper.className = "modal-opciones-overlay";
     wrapper.style.display = "none";
 
+    // Requisito del árbitro de flujos
+    wrapper.setAttribute("data-flujo-sobres", "true");
+
     wrapper.innerHTML = `
             <div class="modal-opciones-caja">
                 <button type="button" class="modal-opciones-cerrar" aria-label="Cerrar">&times;</button>
@@ -61,7 +64,6 @@
       });
     });
 
-    // Escaneo por lotes
     wrapper
       .querySelector(".modal-opciones-agregar-lote")
       .addEventListener("click", function () {
@@ -137,34 +139,67 @@
     modal.style.display = "flex";
   }
 
+  function procesarSiguienteSobre() {
+    sobreActual = null;
+
+    if (colaIndividual.length === 0) {
+      if (window.GestorFlujoSobres) {
+        window.GestorFlujoSobres.notificarPosibleFinDeFlujo();
+      }
+      return;
+    }
+
+    const siguiente = colaIndividual.shift();
+    mostrarSobreEnModal(siguiente);
+
+    if (window.GestorFlujoSobres) {
+      window.GestorFlujoSobres.notificarPosibleFinDeFlujo();
+    }
+  }
+
   function cerrarModalOpciones() {
     if (!modalElement) return;
 
     modalElement.style.display = "none";
-    sobreActual = null;
-
-    if (colaIndividual.length > 0) {
-      const siguiente = colaIndividual.shift();
-      mostrarSobreEnModal(siguiente);
-    }
+    procesarSiguienteSobre();
   }
 
   function manejarAccion(accion, sobre) {
-    const idSobre = sobre ? sobre.id_sobre : null;
+    if (!sobre) {
+      return;
+    }
+
+    let modalDestino = null;
 
     switch (accion) {
       case "marcar-documentos":
-        console.log("[modal-opciones] Marcar documentos ->", idSobre);
+        modalDestino = window.ModalDocumento;
         break;
+
       case "cambiar-estado":
-        console.log("[modal-opciones] Cambiar estado ->", idSobre);
+        modalDestino = window.ModalEstado;
         break;
+
       case "asignar-persona":
-        console.log("[modal-opciones] Asignar a persona ->", idSobre);
+        modalDestino = window.ModalAsignar;
         break;
     }
+
+    if (!modalDestino || typeof modalDestino.abrir !== "function") {
+      alert("El modal seleccionado aún no está disponible.");
+      return;
+    }
+
+    modalElement.style.display = "none";
+    modalDestino.abrir(sobre, procesarSiguienteSobre);
   }
 
+  // Exposición global obligatoria
   window.abrirModalOpciones = abrirModalOpciones;
   window.cerrarModalOpciones = cerrarModalOpciones;
+
+  window.ModalOpciones = {
+    procesarSiguienteSobre: procesarSiguienteSobre,
+    abrir: abrirModalOpciones,
+  };
 })();

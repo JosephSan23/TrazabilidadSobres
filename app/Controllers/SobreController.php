@@ -143,40 +143,40 @@ final class SobreController
     }
 
     public function buscarPorCodigo(array $parameters = []): void
-{
-    header('Content-Type: application/json; charset=UTF-8');
+    {
+        header('Content-Type: application/json; charset=UTF-8');
 
-    $codigo = trim((string) ($_GET['codigo'] ?? ''));
+        $codigo = trim((string) ($_GET['codigo'] ?? ''));
 
-    if ($codigo === '') {
-        http_response_code(400);
-        echo json_encode(['error' => 'Debes enviar un código.']);
-        return;
+        if ($codigo === '') {
+            http_response_code(400);
+            echo json_encode(['error' => 'Debes enviar un código.']);
+            return;
+        }
+
+        try {
+            $sobre = $this->sobreService->findByCodigo($codigo);
+        } catch (\InvalidArgumentException $exception) {
+            http_response_code(400);
+            echo json_encode(['error' => $exception->getMessage()]);
+            return;
+        }
+
+        if ($sobre === null) {
+            http_response_code(404);
+            echo json_encode(['error' => 'No se encontró ningún sobre con ese código.']);
+            return;
+        }
+
+        echo json_encode([
+            'id_sobre' => (int) $sobre['id_sobre'],
+            'id_tramite' => (int) $sobre['id_tramite'],
+            'codigo_sobre' => $sobre['codigo_sobre'],
+            'placa' => $sobre['placa'],
+            'estado' => $sobre['estado'],
+            'responsable' => $sobre['nombre_responsable'] ?? 'Sin responsable',
+        ]);
     }
-
-    try {
-        $sobre = $this->sobreService->findByCodigo($codigo);
-    } catch (\InvalidArgumentException $exception) {
-        http_response_code(400);
-        echo json_encode(['error' => $exception->getMessage()]);
-        return;
-    }
-
-    if ($sobre === null) {
-        http_response_code(404);
-        echo json_encode(['error' => 'No se encontró ningún sobre con ese código.']);
-        return;
-    }
-
-    echo json_encode([
-        'id_sobre' => (int) $sobre['id_sobre'],
-        'id_tramite' => (int) $sobre['id_tramite'],
-        'codigo_sobre' => $sobre['codigo_sobre'],
-        'placa' => $sobre['placa'],
-        'estado' => $sobre['estado'],
-        'responsable' => $sobre['nombre_responsable'] ?? 'Sin responsable',
-    ]);
-}
 
     public function moveForm(array $parameters = []): void
     {
@@ -228,6 +228,8 @@ final class SobreController
         );
 
         $observaciones = trim((string) ($_POST['observaciones'] ?? ''));
+
+        $esAjax = ($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') === 'XMLHttpRequest';
 
         try {
             if ($idUsuarioRegistra === null) {
@@ -281,11 +283,23 @@ final class SobreController
                 $observaciones === '' ? null : $observaciones
             );
 
+            if ($esAjax) {
+                header('Content-Type: application/json; charset=UTF-8');
+                echo json_encode(['ok' => true]);
+                return;
+            }
+
             header('Location: /sobres/' . $idSobre, true, 302);
             exit;
         } catch (\Throwable $exception) {
-            http_response_code(422);
+            if ($esAjax) {
+                http_response_code(422);
+                header('Content-Type: application/json; charset=UTF-8');
+                echo json_encode(['error' => $exception->getMessage()]);
+                return;
+            }
 
+            http_response_code(422);
             echo htmlspecialchars(
                 $exception->getMessage(),
                 ENT_QUOTES,
@@ -386,5 +400,304 @@ final class SobreController
         }
 
         return $number;
+    }
+
+    public function assignBulk(array $parameters = []): void
+    {
+        header('Content-Type: application/json; charset=UTF-8');
+
+        $input = json_decode(file_get_contents('php://input'), true) ?? [];
+
+        $idsSobre = $input['ids_sobre'] ?? [];
+        $idUsuarioResponsable = $this->nullablePositiveInteger(
+            $input['id_usuario_responsable_destino'] ?? null
+        );
+        $idUsuarioRegistra = $this->nullablePositiveInteger(
+            $input['id_usuario_registra'] ?? null
+        );
+
+        try {
+            if ($idUsuarioRegistra === null) {
+                throw new \InvalidArgumentException(
+                    'Debes seleccionar quién registra el movimiento.'
+                );
+            }
+
+            $usuarioRegistra = $this->usuarioService->findActiveById($idUsuarioRegistra);
+
+            if ($usuarioRegistra === null) {
+                throw new \RuntimeException(
+                    'El usuario que registra no existe o está inactivo.'
+                );
+            }
+
+            if ($idUsuarioResponsable === null) {
+                throw new \InvalidArgumentException(
+                    'Debes seleccionar un responsable.'
+                );
+            }
+
+            $responsable = $this->usuarioService->findActiveById($idUsuarioResponsable);
+
+            if ($responsable === null) {
+                throw new \RuntimeException(
+                    'El responsable seleccionado no existe o está inactivo.'
+                );
+            }
+
+            $totalAsignados = $this->sobreService->assignBulk(
+                $idsSobre,
+                $idUsuarioResponsable,
+                $responsable['nombre_completo'],
+                $idUsuarioRegistra,
+                $usuarioRegistra['nombre_completo']
+            );
+
+            echo json_encode([
+                'ok' => true,
+                'asignados' => $totalAsignados,
+            ]);
+        } catch (\Throwable $exception) {
+            http_response_code(422);
+            echo json_encode(['error' => $exception->getMessage()]);
+        }
+    }
+
+    public function assignFromScanner(array $parameters): void
+    {
+        try {
+            $idSobre = $this->positiveInteger(
+                $parameters['id_sobre'] ?? null,
+                'El sobre es inválido.'
+            );
+
+            $idResponsable = $this->positiveInteger(
+                $_POST['id_usuario_responsable'] ?? null,
+                'Selecciona la persona responsable.'
+            );
+
+            $idUsuarioRegistra = $this->positiveInteger(
+                $_POST['id_usuario_registra'] ?? null,
+                'Selecciona quién registra la asignación.'
+            );
+
+            $responsable = $this->usuarioService->findActiveById($idResponsable);
+            $usuarioRegistra = $this->usuarioService->findActiveById(
+                $idUsuarioRegistra
+            );
+
+            if ($responsable === null) {
+                throw new \InvalidArgumentException(
+                    'La persona responsable seleccionada no está disponible.'
+                );
+            }
+
+            if ($usuarioRegistra === null) {
+                throw new \InvalidArgumentException(
+                    'El usuario que registra la asignación no está disponible.'
+                );
+            }
+
+            $sobre = $this->sobreService->findById($idSobre);
+
+            if ($sobre === null) {
+                throw new \RuntimeException('El sobre no existe.');
+            }
+
+            $this->sobreService->assignResponsible(
+                $idSobre,
+                $idResponsable,
+                $idUsuarioRegistra,
+                $usuarioRegistra['nombre_completo']
+            );
+
+            $this->json([
+                'ok' => true,
+                'message' => 'El responsable fue asignado correctamente.',
+                'sobre' => [
+                    'id_sobre' => $idSobre,
+                    'responsable' => $responsable['nombre_completo'],
+                ],
+            ]);
+        } catch (\InvalidArgumentException $exception) {
+            $this->json([
+                'ok' => false,
+                'message' => $exception->getMessage(),
+            ], 422);
+        } catch (\RuntimeException $exception) {
+            $this->json([
+                'ok' => false,
+                'message' => $exception->getMessage(),
+            ], 404);
+        } catch (\Throwable $exception) {
+            $this->json([
+                'ok' => false,
+                'message' => 'No fue posible asignar el responsable del sobre.',
+            ], 500);
+        }
+    }
+
+    private function json(array $data, int $status = 200): void
+    {
+        http_response_code($status);
+        header('Content-Type: application/json; charset=utf-8');
+
+        echo json_encode(
+            $data,
+            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+        );
+    }
+
+    private function positiveInteger(
+        mixed $value,
+        string $message
+    ): int {
+        $number = filter_var(
+            $value,
+            FILTER_VALIDATE_INT,
+            ['options' => ['min_range' => 1]]
+        );
+
+        if ($number === false) {
+            throw new \InvalidArgumentException($message);
+        }
+
+        return (int) $number;
+    }
+
+    private function positiveIntegerArray(mixed $values): array
+    {
+        if (!is_array($values)) {
+            throw new \InvalidArgumentException(
+                'La lista de documentos es inválida.'
+            );
+        }
+
+        $documentos = [];
+
+        foreach ($values as $value) {
+            $idDocumento = filter_var(
+                $value,
+                FILTER_VALIDATE_INT,
+                ['options' => ['min_range' => 1]]
+            );
+
+            if ($idDocumento === false) {
+                throw new \InvalidArgumentException(
+                    'Uno de los documentos seleccionados es inválido.'
+                );
+            }
+
+            $documentos[] = (int) $idDocumento;
+        }
+
+        return array_values(array_unique($documentos));
+    }
+
+    public function documentsFromScanner(array $parameters): void
+    {
+        try {
+            $idSobre = $this->positiveInteger(
+                $parameters['id_sobre'] ?? null,
+                'El sobre es inválido.'
+            );
+
+            $sobre = $this->sobreService->findById($idSobre);
+
+            if ($sobre === null) {
+                throw new \RuntimeException('El sobre no existe.');
+            }
+
+            $documentos = $this->checklistDocumentoService->listBySobre(
+                $idSobre,
+                (int) $sobre['id_tramite']
+            );
+
+            $this->json([
+                'ok' => true,
+                'sobre' => [
+                    'id_sobre' => $idSobre,
+                    'id_tramite' => (int) $sobre['id_tramite'],
+                    'placa' => $sobre['placa'],
+                ],
+                'documentos' => $documentos,
+            ]);
+        } catch (\InvalidArgumentException $exception) {
+            $this->json([
+                'ok' => false,
+                'message' => $exception->getMessage(),
+            ], 422);
+        } catch (\RuntimeException $exception) {
+            $this->json([
+                'ok' => false,
+                'message' => $exception->getMessage(),
+            ], 404);
+        } catch (\Throwable $exception) {
+            $this->json([
+                'ok' => false,
+                'message' => 'No fue posible consultar los documentos del sobre.',
+            ], 500);
+        }
+    }
+
+    public function saveDocumentsFromScanner(array $parameters): void
+    {
+        try {
+            $idSobre = $this->positiveInteger(
+                $parameters['id_sobre'] ?? null,
+                'El sobre es inválido.'
+            );
+
+            $idUsuarioRegistra = $this->positiveInteger(
+                $_POST['id_usuario_registra'] ?? null,
+                'Selecciona quién registra los documentos.'
+            );
+
+            $documentosMarcados = $this->positiveIntegerArray(
+                $_POST['documentos_marcados'] ?? []
+            );
+
+            $usuarioRegistra = $this->usuarioService->findActiveById(
+                $idUsuarioRegistra
+            );
+
+            if ($usuarioRegistra === null) {
+                throw new \InvalidArgumentException(
+                    'El usuario que registra no está disponible.'
+                );
+            }
+
+            $sobre = $this->sobreService->findById($idSobre);
+
+            if ($sobre === null) {
+                throw new \RuntimeException('El sobre no existe.');
+            }
+
+            $this->checklistDocumentoService->saveValidations(
+                (int) $sobre['id_tramite'],
+                $documentosMarcados,
+                $idUsuarioRegistra
+            );
+
+            $this->json([
+                'ok' => true,
+                'message' => 'Los documentos marcados fueron guardados.',
+            ]);
+        } catch (\InvalidArgumentException $exception) {
+            $this->json([
+                'ok' => false,
+                'message' => $exception->getMessage(),
+            ], 422);
+        } catch (\RuntimeException $exception) {
+            $this->json([
+                'ok' => false,
+                'message' => $exception->getMessage(),
+            ], 404);
+        } catch (\Throwable $exception) {
+            $this->json([
+                'ok' => false,
+                'message' => 'No fue posible guardar los documentos.',
+            ], 500);
+        }
     }
 }

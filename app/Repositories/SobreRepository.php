@@ -270,4 +270,74 @@ final class SobreRepository
             $parameters,
         ];
     }
+
+    public function assignResponsableBulk(
+        array $idsSobre,
+        int $idUsuarioResponsable,
+        string $nombreResponsable,
+        int $idUsuarioRegistra,
+        string $nombreUsuarioRegistra
+    ): int {
+        $this->connection->beginTransaction();
+
+        try {
+            $statement = $this->connection->prepare(
+                'CALL sp_custodia_mover_sobre_core(?, ?, ?, ?, ?, ?, ?)'
+            );
+
+            $actualizados = 0;
+
+            foreach ($idsSobre as $idSobre) {
+                $statement->execute([
+                    (int) $idSobre,
+                    null, // sin ubicación
+                    $nombreResponsable,
+                    $idUsuarioResponsable,
+                    $idUsuarioRegistra,
+                    $nombreUsuarioRegistra,
+                    null, // sin observaciones
+                ]);
+
+                $statement->closeCursor();
+                $actualizados++;
+            }
+
+            $this->connection->commit();
+
+            return $actualizados;
+        } catch (\Throwable $exception) {
+            if ($this->connection->inTransaction()) {
+                $this->connection->rollBack();
+            }
+
+            throw $exception;
+        }
+    }
+
+    public function assignResponsible(
+        int $idSobre,
+        int $idResponsable,
+        int $idUsuarioRegistra,
+        string $nombreUsuarioRegistra
+    ): void {
+        $statement = $this->connection->prepare(
+            <<<'SQL'
+        CALL sp_custodia_asignar_responsable(
+            :id_sobre,
+            :id_usuario_responsable,
+            :id_usuario_registra,
+            :nombre_usuario_registra
+        )
+        SQL
+        );
+
+        $statement->execute([
+            'id_sobre' => $idSobre,
+            'id_usuario_responsable' => $idResponsable,
+            'id_usuario_registra' => $idUsuarioRegistra,
+            'nombre_usuario_registra' => $nombreUsuarioRegistra,
+        ]);
+
+        $statement->closeCursor();
+    }
 }

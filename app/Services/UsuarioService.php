@@ -27,4 +27,9 @@ final class UsuarioService
 
         return $this->usuarioRepository->findActiveById($idUsuario);
     }
+
+    public function listActive(): array
+    {
+        return $this->usuarioRepository->findAll();
+    }
 }

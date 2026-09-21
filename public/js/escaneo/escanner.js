@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  const SCANNER_MAX_INTERVAL_MS = 40;
+  const SCANNER_MAX_INTERVAL_MS = 80;
   const SCANNER_MIN_LENGTH = 4;
   const SCANNER_TIMEOUT_RESET_MS = 300;
 
@@ -21,12 +21,6 @@
     resetTimer = setTimeout(resetBuffer, SCANNER_TIMEOUT_RESET_MS);
   }
 
-  function isEditableTarget(target) {
-    if (!target) return false;
-    const tag = target.tagName ? target.tagName.toLowerCase() : "";
-    return tag === "input" || tag === "textarea" || target.isContentEditable;
-  }
-
   document.addEventListener(
     "keydown",
     function (event) {
@@ -42,9 +36,8 @@
           const codigoEscaneado = buffer;
           resetBuffer();
 
-          if (isEditableTarget(event.target)) {
-            event.preventDefault();
-          }
+          event.preventDefault();
+          event.stopPropagation();
 
           onSobreEscaneado(codigoEscaneado);
         } else {
@@ -65,10 +58,12 @@
   function onSobreEscaneado(codigo) {
     console.log("[scanner] Código detectado:", codigo);
 
-    fetch("/sobres/buscar-por-codigo?codigo=" + encodeURIComponent(codigo), {
-      method: "GET",
-      headers: { "X-Requested-With": "XMLHttpRequest" },
-    })
+    fetch(
+      (window.APP_BASE || "") +
+        "/sobres/buscar-por-codigo?codigo=" +
+        encodeURIComponent(codigo),
+      { method: "GET", headers: { "X-Requested-With": "XMLHttpRequest" } },
+    )
       .then(function (response) {
         if (!response.ok) {
           throw new Error("No se encontró el sobre para el código " + codigo);

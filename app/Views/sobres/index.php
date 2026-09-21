@@ -27,6 +27,8 @@ $lastRecord = min(
     $currentPage * $perPage,
     $totalSobres
 );
+
+$asset = fn(string $ruta) => $escape(Url::to($ruta, ['v' => '1']));
 ?>
 
 <link
@@ -44,6 +46,9 @@ $lastRecord = min(
     rel="stylesheet"
     href="<?= $escape(Url::to('/css/components/pagination.css')) ?>">
 
+<link
+    rel="stylesheet"
+    href="<?= $escape(Url::to('/css/modal.css')) ?>">
 
 <?php require __DIR__ . '../../../Components/sidebar.php'; ?>
 
@@ -97,6 +102,13 @@ $lastRecord = min(
                         </form>
                     </div>
 
+                    <div class="switch-modo-lote">
+                        <label>
+                            <input type="checkbox" id="toggle-modo-lote">
+                            Modo asignación masiva
+                        </label>
+                    </div>
+
                     <!-- Grupo derecho: Pestañas de filtro -->
                     <div class="custodia-results-row__actions">
                         <div class="filter-tabs">
@@ -143,7 +155,7 @@ $lastRecord = min(
                                     </li>
 
                                     <li>
-                                        <span class="field-icon-label">
+                                        <!-- <span class="field-icon-label">
                                             <i class="bi bi-geo-alt"></i>
                                             <span class="field-label">Ubicación:</span>
                                         </span>
@@ -155,18 +167,24 @@ $lastRecord = min(
                                             <span class="tag-ubicacion tag-ubicacion--pendiente">
                                                 <i class="bi bi-exclamation-triangle"></i> Pendiente de ubicar
                                             </span>
-                                        <?php endif; ?>
+                                        <?php endif; ?> -->
+                                        <span class="field-icon-label">
+                                            <i class="bi bi-car-front"></i>
+                                            <span class="field-label">Aseguradora:</span>
+                                        </span>
                                     </li>
                                     <li>
                                         <span class="field-icon-label">
                                             <i class="bi bi-person"></i>
-                                            <span class="field-label">Responsable:</span>
+                                            <span class="field-label">Lo tiene: </span>
                                         </span>
-                                        <?php if ($sobre['nombre_responsable']): ?>
-                                            <span class="field-value"><?= $escape($sobre['nombre_responsable']) ?></span>
-                                        <?php else: ?>
-                                            <span class="text-muted-italic">Sin responsable</span>
-                                        <?php endif; ?>
+                                        <span class="field-value" data-campo-responsable>
+                                            <?php if ($sobre['nombre_responsable']): ?>
+                                                <?= $escape($sobre['nombre_responsable']) ?>
+                                            <?php else: ?>
+                                                <span class="text-muted-italic">Front</span>
+                                            <?php endif; ?>
+                                        </span>
                                     </li>
                                     <li>
                                         <span class="field-icon-label">
@@ -212,14 +230,24 @@ $lastRecord = min(
     </div>
 </section>
 
-<script
-    src="<?= $escape(
-                Url::to('/js/auto-filter.js', ['v' => '1'])
-            ) ?>"></script>
+<script>
+    window.APP_BASE = <?= json_encode(rtrim(Url::to('/'), '/')) ?>;
+</script>
+<script src="<?= $asset('/js/auto-filter.js') ?>"></script>
+<script src="<?= $asset('/js/escaneo/modo-escaneo.js') ?>"></script>
+<script src="<?= $asset('/js/utilidades/selector-usuarios.js') ?>"></script>
 
+<!-- 1. El árbitro y los modales deben ir primero -->
+<script src="<?= $asset('/js/gestor-flujo-sobres.js') ?>"></script>
+<script src="<?= $asset('/js/modales/modal-documentos.js') ?>"></script>
+<script src="<?= $asset('/js/modales/modal-opciones.js') ?>"></script>
+<script src="<?= $asset('/js/modales/modal-asignar.js') ?>"></script>
 
-<script src="/js/modo-escaneo.js"></script>
-<script src="/js/modales/modal-opciones.js"></script>
-<script src="/js/paneles/lote.js"></script>
-<script src="/js/modales/sobres-card.js"></script>
-<script src="/js/scanner.js"></script>
+<!-- 2. Paneles y lógica dependiente -->
+<script src="<?= $asset('/js/paneles/lote.js') ?>"></script>
+<script src="<?= $asset('/js/paneles/switch-modo-lote.js') ?>"></script>
+
+<!-- 3. Las tarjetas van después porque llaman a los modales anteriores -->
+<script src="<?= $asset('/js/modales/sobres-card.js') ?>"></script>
+
+<script src="<?= $asset('/js/escaneo/escanner.js') ?>"></script>

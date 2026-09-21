@@ -7,6 +7,8 @@ use App\Controllers\SobreController;
 use App\Controllers\UbicacionController;
 use App\Controllers\TramiteController;
 use App\Controllers\FichaCustodiaController;
+use App\Controllers\UsuarioController;
+
 use App\Core\Router;
 
 
@@ -16,6 +18,7 @@ $sobreController = new SobreController();
 $ubicacionController = new UbicacionController();
 $tramiteController = new TramiteController();
 $fichaCustodiaController = new FichaCustodiaController();
+$usuarioController = new UsuarioController();
 
 $router->get('/ubicaciones', [
     $ubicacionController,
@@ -60,6 +63,31 @@ $router->post('/sobres/generar-fichas', [
 $router->post('/sobres/{id_sobre}/mover', [
     $sobreController,
     'move',
+]);
+
+$router->post('/sobres/asignar-lote', [
+    $sobreController,
+    'assignBulk',
+]);
+
+$router->post('/api/sobres/{id_sobre}/asignar', [
+    $sobreController,
+    'assignFromScanner',
+]);
+
+$router->get('/usuarios/disponibles', [
+    $usuarioController,
+    'disponibles',
+]);
+
+$router->get('/api/sobres/{id_sobre}/documentos', [
+    $sobreController,
+    'documentsFromScanner',
+]);
+
+$router->post('/api/sobres/{id_sobre}/documentos', [
+    $sobreController,
+    'saveDocumentsFromScanner',
 ]);
 
 return $router;

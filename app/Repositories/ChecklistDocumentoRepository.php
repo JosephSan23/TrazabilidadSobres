@@ -10,8 +10,7 @@ final class ChecklistDocumentoRepository
 {
     public function __construct(
         private PDO $connection
-    ) {
-    }
+    ) {}
 
     public function findByTramiteId(int $idTramite): array
     {
@@ -54,5 +53,48 @@ final class ChecklistDocumentoRepository
         $consultaStatement->closeCursor();
 
         return array_values($documentos);
+    }
+
+    public function synchronizeValidations(
+        int $idTramite,
+        array $idsPermitidos,
+        array $documentosMarcados,
+        int $idUsuarioRegistra
+    ): void {
+        $marcados = array_flip($documentosMarcados);
+
+        $statement = $this->connection->prepare(
+            <<<'SQL'
+        CALL Usp_PopupCrearValidacionDocumento(
+            :id_tramite,
+            :id_documento,
+            :id_usuario,
+            :validacion
+        )
+        SQL
+        );
+
+        $this->connection->beginTransaction();
+
+        try {
+            foreach ($idsPermitidos as $idDocumento) {
+                $statement->execute([
+                    'id_tramite' => $idTramite,
+                    'id_documento' => $idDocumento,
+                    'id_usuario' => $idUsuarioRegistra,
+                    'validacion' => isset($marcados[$idDocumento]) ? 1 : 0,
+                ]);
+                
+                $statement->closeCursor();
+            }
+
+            $this->connection->commit();
+        } catch (\Throwable $exception) {
+            if ($this->connection->inTransaction()) {
+                $this->connection->rollBack();
+            }
+
+            throw $exception;
+        }
     }
 }
