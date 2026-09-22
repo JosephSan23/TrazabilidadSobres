@@ -19,11 +19,19 @@
   }
 
   function hayLotePendiente() {
-    return !!(
+    const pendienteModoEscaneo = !!(
       window.ModoEscaneo &&
       typeof window.ModoEscaneo.hayLotePendiente === "function" &&
       window.ModoEscaneo.hayLotePendiente()
     );
+
+    const pendienteLotePanel = !!(
+      window.LotePanel &&
+      typeof window.LotePanel.hayLotePendiente === "function" &&
+      window.LotePanel.hayLotePendiente()
+    );
+
+    return pendienteModoEscaneo || pendienteLotePanel;
   }
 
   function notificarPosibleFinDeFlujo() {

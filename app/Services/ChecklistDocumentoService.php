@@ -88,7 +88,7 @@ final class ChecklistDocumentoService
         $idsPermitidos = [];
 
         foreach ($documentosRequeridos as $documento) {
-            $idsPermitidos[] = (int) $documento['Id_documento'];
+            $idsPermitidos[] = (int) $documento['id_documento'];
         }
 
         $idsPermitidos = array_values(array_unique($idsPermitidos));

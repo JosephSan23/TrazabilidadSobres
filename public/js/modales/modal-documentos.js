@@ -72,9 +72,7 @@
   }
 
   function cargarDocumentos() {
-    const contenedor = modalElement.querySelector(
-      ".modal-documento-contenido"
-    );
+    const contenedor = modalElement.querySelector(".modal-documento-contenido");
 
     contenedor.innerHTML = "<p>Cargando documentos...</p>";
 
@@ -85,16 +83,15 @@
         "/documentos",
       {
         headers: {
-          Accept: "application/json"
-        }
-      }
+          Accept: "application/json",
+        },
+      },
     )
       .then(function (response) {
         return response.json().then(function (respuesta) {
           if (!response.ok || !respuesta.ok) {
             throw new Error(
-              respuesta.message ||
-              "No fue posible consultar los documentos."
+              respuesta.message || "No fue posible consultar los documentos.",
             );
           }
 
@@ -111,9 +108,7 @@
   }
 
   function renderizarFormulario(documentos) {
-    const contenedor = modalElement.querySelector(
-      ".modal-documento-contenido"
-    );
+    const contenedor = modalElement.querySelector(".modal-documento-contenido");
 
     if (documentos.length === 0) {
       contenedor.innerHTML = `
@@ -136,11 +131,12 @@
       return;
     }
 
-    const filas = documentos.map(function (documento) {
-      const idDocumento = Number(documento.Id_documento);
-      const marcado = Number(documento.flagdb) > 0;
+    const filas = documentos
+      .map(function (documento) {
+        const idDocumento = Number(documento.id_documento);
+        const marcado = documento.validado === true;
 
-      return `
+        return `
         <label class="modal-documento-item">
           <input
             type="checkbox"
@@ -149,7 +145,7 @@
             ${marcado ? "checked" : ""}>
 
           <span>
-            ${escaparHTML(documento.Documento || "Documento sin nombre")}
+            ${escaparHTML(documento.nombre_documento || "Documento sin nombre")}
           </span>
 
           <small>
@@ -157,12 +153,18 @@
           </small>
         </label>
       `;
-    }).join("");
+      })
+      .join("");
 
     contenedor.innerHTML = `
       <p class="modal-documento-ayuda">
         Marca los documentos físicos disponibles en el sobre.
       </p>
+
+      <div
+        class="mb-3"
+        data-progreso-documentos>
+      </div>
 
       <div class="modal-documento-lista">
         ${filas}
@@ -195,6 +197,16 @@
       </div>
     `;
 
+    actualizarProgresoDocumentos(contenedor);
+
+    contenedor
+      .querySelectorAll('input[name="documentos_marcados[]"]')
+      .forEach(function (checkbox) {
+        checkbox.addEventListener("change", function () {
+          actualizarProgresoDocumentos(contenedor);
+        });
+      });
+
     contenedor
       .querySelector("[data-volver-opciones]")
       .addEventListener("click", volverAOpciones);
@@ -206,9 +218,32 @@
     cargarSelectorUsuario();
   }
 
+  function actualizarProgresoDocumentos(contenedor) {
+    const barra = contenedor.querySelector("[data-progreso-documentos]");
+
+    const documentos = contenedor.querySelectorAll(
+      'input[name="documentos_marcados[]"]',
+    );
+
+    const disponibles = contenedor.querySelectorAll(
+      'input[name="documentos_marcados[]"]:checked',
+    );
+
+    if (
+      window.ProgresoDocumentos &&
+      typeof window.ProgresoDocumentos.renderizar === "function"
+    ) {
+      window.ProgresoDocumentos.renderizar(
+        barra,
+        disponibles.length,
+        documentos.length,
+      );
+    }
+  }
+
   function cargarSelectorUsuario() {
     const destino = modalElement.querySelector(
-      "[data-select-usuario-documentos]"
+      "[data-select-usuario-documentos]",
     );
 
     if (
@@ -225,7 +260,7 @@
         destino.innerHTML = window.SelectorUsuarios.construirSelectHTML(
           "select-usuario-documentos",
           usuarios,
-          "Selecciona quién registra..."
+          "Selecciona quién registra...",
         );
       })
       .catch(function () {
@@ -234,25 +269,16 @@
   }
 
   function guardarDocumentos() {
-    const contenedor = modalElement.querySelector(
-      ".modal-documento-contenido"
-    );
+    const contenedor = modalElement.querySelector(".modal-documento-contenido");
 
-    const usuario = contenedor.querySelector(
-      "#select-usuario-documentos"
-    );
+    const usuario = contenedor.querySelector("#select-usuario-documentos");
 
     if (!usuario || !usuario.value) {
-      mostrarMensaje(
-        "Selecciona quién registra los documentos.",
-        "error"
-      );
+      mostrarMensaje("Selecciona quién registra los documentos.", "error");
       return;
     }
 
-    const boton = contenedor.querySelector(
-      "[data-guardar-documentos]"
-    );
+    const boton = contenedor.querySelector("[data-guardar-documentos]");
 
     boton.disabled = true;
     boton.textContent = "Guardando...";
@@ -275,19 +301,17 @@
       {
         method: "POST",
         headers: {
-          "Content-Type":
-            "application/x-www-form-urlencoded; charset=UTF-8",
-          Accept: "application/json"
+          "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+          Accept: "application/json",
         },
-        body: datos.toString()
-      }
+        body: datos.toString(),
+      },
     )
       .then(function (response) {
         return response.json().then(function (respuesta) {
           if (!response.ok || !respuesta.ok) {
             throw new Error(
-              respuesta.message ||
-              "No fue posible guardar los documentos."
+              respuesta.message || "No fue posible guardar los documentos.",
             );
           }
 
@@ -333,9 +357,7 @@
   }
 
   function mostrarMensaje(mensaje, tipo) {
-    const elemento = modalElement.querySelector(
-      ".modal-documento-mensaje"
-    );
+    const elemento = modalElement.querySelector(".modal-documento-mensaje");
 
     elemento.textContent = mensaje || "";
     elemento.dataset.tipo = tipo || "";
@@ -350,6 +372,6 @@
   }
 
   window.ModalDocumento = {
-    abrir: abrir
+    abrir: abrir,
   };
 })();

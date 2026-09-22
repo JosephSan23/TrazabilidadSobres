@@ -132,6 +132,26 @@
     });
   }
 
+  function notificarSiTermino() {
+    if (window.GestorFlujoSobres) {
+      window.GestorFlujoSobres.notificarPosibleFinDeFlujo();
+    }
+  }
+
+  function vaciarLote() {
+    loteActual = [];
+    renderizarPanel();
+  }
+
+  function cancelarModoLote() {
+    loteActual = [];
+    window.ModoEscaneo.activarModoIndividual();
+    if (panelElement) {
+      panelElement.style.display = "none";
+    }
+    notificarSiTermino();
+  }
+
   function confirmarAsignacionLote() {
     const idResponsable = document.getElementById(
       "select-lote-responsable",
@@ -201,5 +221,10 @@
     }
   });
 
-  window.agregarSobreALote = agregarSobreALote;
+  window.LotePanel = {
+    hayLotePendiente: function () {
+      return loteActual.length > 0;
+    },
+  };
+  window.agregarSobreALote = agregarSobreALote; // se mantiene igual
 })();

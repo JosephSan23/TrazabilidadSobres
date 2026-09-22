@@ -315,6 +315,10 @@
   margin-bottom: 0.5rem;
 }
 
+.custodia-card-item__progreso {
+  margin: 0.8rem 0 1.25rem;
+}
+
 .custodia-card-item__label {
   display: inline-block;
   font-size: 0.68rem;
@@ -400,16 +404,40 @@
 /* ==========================================
    7. Badges, Etiquetas y Tags de Estado
    ========================================== */
+
 .badge-placa {
-  display: inline-block;
-  font-size: 0.78rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  color: #000;
-  background-color: #ffde06;
-  border: 1px solid #000;
-  padding: 0.15rem 0.55rem;
-  border-radius: 6px;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #ffc72c;
+  color: #1a1a2e;
+  border: 2px solid #1a1a2e;
+  font-family: Arial, sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 0.5px;
+  padding: 5px 18px;
+  border-radius: 10px;
+  white-space: nowrap;
+  min-width: fit-content;
+}
+
+.badge-placa::before,
+.badge-placa::after {
+  content: "•";
+  position: absolute;
+  top: 6px;
+  font-size: 14px;
+  color: #1a1a2e;
+}
+
+.badge-placa::before {
+  left: 8px;
+}
+
+.badge-placa::after {
+  right: 8px;
 }
 
 .tag-ubicacion {
@@ -497,4 +525,182 @@
   font-size: 0.82rem;
   color: #6b6b6b;
   margin-top: 0.5rem;
+}
+
+.custodia-card-item__progreso-mini {
+  display: flex;
+  justify-content: flex-end;
+  min-width: 118px;
+}
+
+.custodia-progreso-mini {
+  position: relative;
+  width: 108px;
+  height: 22px;
+  overflow: hidden;
+  border: 1px solid #cbd9eb;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #f8fbff 0%, #edf3fa 52%, #e2ebf5 100%);
+  box-shadow:
+    inset 0 1px 2px rgb(15 23 42 / 8%),
+    0 1px 1px rgb(15 23 42 / 4%);
+}
+
+.custodia-progreso-mini::before {
+  position: absolute;
+  inset: 2px;
+  z-index: 1;
+  border-radius: inherit;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0,
+    transparent 17px,
+    rgb(100 116 139 / 12%) 17px,
+    rgb(100 116 139 / 12%) 18px
+  );
+  content: "";
+  pointer-events: none;
+}
+
+.custodia-progreso-mini::after {
+  position: absolute;
+  top: 50%;
+  left: 5px;
+  z-index: 3;
+  width: 6px;
+  height: 6px;
+  transform: translateY(-50%);
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow:
+    0 0 0 2px rgb(37 99 235 / 22%),
+    0 1px 2px rgb(15 23 42 / 20%);
+  content: "";
+}
+
+.custodia-progreso-mini__avance {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  left: 2px;
+  z-index: 2;
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #d9e2ec;
+  box-shadow:
+    inset 0 1px 1px rgb(255 255 255 / 45%),
+    0 0 8px rgb(100 116 139 / 16%);
+  transition: width 320ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.custodia-progreso-mini__avance::after {
+  position: absolute;
+  top: 0;
+  right: -25%;
+  bottom: 0;
+  width: 42%;
+  transform: skewX(-24deg);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgb(255 255 255 / 48%),
+    transparent
+  );
+  content: "";
+  animation: custodia-progreso-brillo 2.8s ease-in-out infinite;
+}
+
+.custodia-progreso-mini__texto {
+  position: absolute;
+  top: 50%;
+  right: 3px;
+  z-index: 5;
+  display: grid;
+  min-width: 29px;
+  height: 16px;
+  padding: 0 0.25rem;
+  transform: translateY(-50%);
+  place-items: center;
+  border: 1px solid rgb(255 255 255 / 72%);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 78%);
+  box-shadow: 0 1px 2px rgb(15 23 42 / 10%);
+  color: #31516f;
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.custodia-progreso-mini--pendiente .custodia-progreso-mini__avance {
+  background: linear-gradient(90deg, #dc2626 0%, #ef4444 52%, #fca5a5 100%);
+  box-shadow:
+    inset 0 1px 1px rgb(255 255 255 / 42%),
+    0 0 8px rgb(220 38 38 / 30%);
+}
+
+.custodia-progreso-mini--advertencia .custodia-progreso-mini__avance {
+  background: linear-gradient(90deg, #d97706 0%, #f59e0b 52%, #fcd34d 100%);
+  box-shadow:
+    inset 0 1px 1px rgb(255 255 255 / 42%),
+    0 0 8px rgb(245 158 11 / 30%);
+}
+
+.custodia-progreso-mini--completo .custodia-progreso-mini__avance {
+  background: linear-gradient(90deg, #15803d 0%, #22c55e 52%, #86efac 100%);
+  box-shadow:
+    inset 0 1px 1px rgb(255 255 255 / 42%),
+    0 0 8px rgb(34 197 94 / 30%);
+}
+
+.custodia-progreso-mini--pendiente::after {
+  box-shadow:
+    0 0 0 2px rgb(220 38 38 / 25%),
+    0 1px 2px rgb(15 23 42 / 20%);
+}
+
+.custodia-progreso-mini--advertencia::after {
+  box-shadow:
+    0 0 0 2px rgb(245 158 11 / 28%),
+    0 1px 2px rgb(15 23 42 / 20%);
+}
+
+.custodia-progreso-mini--completo::after {
+  box-shadow:
+    0 0 0 2px rgb(34 197 94 / 28%),
+    0 1px 2px rgb(15 23 42 / 20%);
+}
+
+.custodia-progreso-mini--pendiente .custodia-progreso-mini__texto {
+  color: #991b1b;
+}
+
+.custodia-progreso-mini--advertencia .custodia-progreso-mini__texto {
+  color: #92400e;
+}
+
+.custodia-progreso-mini--completo .custodia-progreso-mini__texto {
+  color: #166534;
+}
+
+@keyframes custodia-progreso-brillo {
+  0%,
+  55% {
+    right: -40%;
+  }
+
+  100% {
+    right: 115%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .custodia-progreso-mini__avance::after {
+    animation: none;
+  }
+
+  .custodia-progreso-mini__avance {
+    transition: none;
+  }
 }

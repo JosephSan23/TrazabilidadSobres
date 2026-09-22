@@ -74,7 +74,6 @@ $asset = fn(string $ruta) => $escape(Url::to($ruta, ['v' => '1']));
         <div id="sobres-resultados">
             <div class="custodia-card__body">
                 <div class="custodia-results-row">
-                    <!-- Grupo izquierdo: Contador + Buscador alineados -->
                     <div class="custodia-results-row__left">
                         <p class="mb-0">
                             <strong><?= $escape($totalSobres) ?></strong>
@@ -91,6 +90,7 @@ $asset = fn(string $ruta) => $escape(Url::to($ruta, ['v' => '1']));
                                 <span class="custodia-search__icon">
                                     <i class="bi bi-search"></i>
                                 </span>
+
                                 <input
                                     type="search"
                                     id="busqueda"
@@ -109,12 +109,11 @@ $asset = fn(string $ruta) => $escape(Url::to($ruta, ['v' => '1']));
                         </label>
                     </div>
 
-                    <!-- Grupo derecho: Pestañas de filtro -->
                     <div class="custodia-results-row__actions">
                         <div class="filter-tabs">
                             <a href="?estado=todos" class="filter-tab filter-tab--todos is-active">Todos</a>
                             <a href="?estado=creados" class="filter-tab filter-tab--creados">Creados</a>
-                            <a href="?estado=gestion" class="filter-tab filter-tab--gestion">Gestion</a>
+                            <a href="?estado=gestion" class="filter-tab filter-tab--gestion">Gestión</a>
                             <a href="?estado=incompletos" class="filter-tab filter-tab--incompletos">Incompletos</a>
                             <a href="?estado=completos" class="filter-tab filter-tab--completos">Completos</a>
                             <a href="?estado=radicados" class="filter-tab filter-tab--radicados">Radicados</a>
@@ -122,84 +121,118 @@ $asset = fn(string $ruta) => $escape(Url::to($ruta, ['v' => '1']));
                         </div>
                     </div>
                 </div>
-                <div class="custodia-grid" id="tabla-sobres" data-custodia-table>
+
+                <div
+                    class="custodia-grid"
+                    id="tabla-sobres"
+                    data-custodia-table>
+
                     <?php foreach ($sobres as $sobre): ?>
-                        <?php $tieneUbicacion = (bool) $sobre['nombre_ubicacion']; ?>
-                        <div class="custodia-card-item">
+                        <div
+                            class="custodia-card-item"
+                            data-sobre-card
+                            data-id-sobre="<?= $escape($sobre['id_sobre']) ?>">
+
                             <div class="custodia-card-item__header">
-                                <span class="custodia-card-item__label">SOBRE</span>
-                                <?php if ($tieneUbicacion): ?>
-                                    <span class="custodia-corner-tag custodia-corner-tag--activo">
-                                        <i class="bi bi-check-circle"></i> Con ubicación
-                                    </span>
-                                <?php else: ?>
-                                    <span class="custodia-corner-tag custodia-corner-tag--pendiente">
-                                        <i class="bi bi-exclamation-triangle"></i> Sin Ubicación
-                                    </span>
-                                <?php endif; ?>
+                                <span class="custodia-card-item__label">
+                                    SOBRE
+                                </span>
+
+                                <div
+                                    class="custodia-card-item__progreso-mini"
+                                    data-progreso-barra>
+                                    <span class="custodia-progreso-mini__texto">0%</span>
+                                </div>
                             </div>
 
                             <div class="custodia-card-item__body">
+
                                 <div class="custodia-card-item__title">
-                                    <h3><i class="bi bi-upc-scan"></i> <?= $escape($sobre['codigo_sobre']) ?></h3>
-                                    <span class="badge-placa"><?= $escape($sobre['placa']) ?></span>
+                                    <h3>
+                                        <i class="bi bi-upc-scan"></i>
+                                        <?= $escape($sobre['codigo_sobre']) ?>
+                                    </h3>
+
+                                    <span class="badge-placa">
+                                        <?php
+                                        $placa = $escape($sobre['placa']);
+                                        $placaFormateada = substr($placa, 0, 3) . '-' . substr($placa, 3);
+                                        echo $placaFormateada;
+                                        ?>
+                                    </span>
                                 </div>
 
                                 <ul class="custodia-card-item__fields">
                                     <li>
                                         <span class="field-icon-label">
                                             <i class="bi bi-hash"></i>
-                                            <span class="field-label">Nº Trámite:</span>
+                                            <span class="field-label">
+                                                Nº Trámite:
+                                            </span>
                                         </span>
-                                        <span class="field-value">#<?= $escape($sobre['id_tramite']) ?></span>
+
+                                        <span class="field-value">
+                                            #<?= $escape($sobre['id_tramite']) ?>
+                                        </span>
                                     </li>
 
                                     <li>
-                                        <!-- <span class="field-icon-label">
-                                            <i class="bi bi-geo-alt"></i>
-                                            <span class="field-label">Ubicación:</span>
-                                        </span>
-                                        <?php if ($tieneUbicacion): ?>
-                                            <span class="tag-ubicacion tag-ubicacion--ok">
-                                                <i class="bi bi-box-seam"></i> <?= $escape($sobre['nombre_ubicacion']) ?>
-                                            </span>
-                                        <?php else: ?>
-                                            <span class="tag-ubicacion tag-ubicacion--pendiente">
-                                                <i class="bi bi-exclamation-triangle"></i> Pendiente de ubicar
-                                            </span>
-                                        <?php endif; ?> -->
                                         <span class="field-icon-label">
                                             <i class="bi bi-car-front"></i>
-                                            <span class="field-label">Aseguradora:</span>
+                                            <span class="field-label">
+                                                Aseguradora:
+                                            </span>
                                         </span>
                                     </li>
+
                                     <li>
                                         <span class="field-icon-label">
                                             <i class="bi bi-person"></i>
-                                            <span class="field-label">Lo tiene: </span>
+                                            <span class="field-label">
+                                                Lo tiene:
+                                            </span>
                                         </span>
-                                        <span class="field-value" data-campo-responsable>
+
+                                        <span
+                                            class="field-value"
+                                            data-campo-responsable>
                                             <?php if ($sobre['nombre_responsable']): ?>
-                                                <?= $escape($sobre['nombre_responsable']) ?>
+                                                <?= $escape(
+                                                    $sobre['nombre_responsable']
+                                                ) ?>
                                             <?php else: ?>
-                                                <span class="text-muted-italic">Front</span>
+                                                <span class="text-muted-italic">
+                                                    Front
+                                                </span>
                                             <?php endif; ?>
                                         </span>
                                     </li>
+
                                     <li>
                                         <span class="field-icon-label">
                                             <i class="bi bi-clock-history"></i>
-                                            <span class="field-label">Último mov.:</span>
+                                            <span class="field-label">
+                                                Último mov.:
+                                            </span>
                                         </span>
-                                        <span class="field-value"><?= $escape($sobre['fecha_ultimo_movimiento']) ?></span>
+
+                                        <span class="field-value">
+                                            <?= $escape(
+                                                $sobre['fecha_ultimo_movimiento']
+                                            ) ?>
+                                        </span>
                                     </li>
                                 </ul>
                             </div>
 
                             <div class="custodia-card-item__footer">
-                                <span class="badge-estado badge-estado--<?= strtolower($escape($sobre['estado'])) ?>">
+                                <span
+                                    class="badge-estado badge-estado--<?= strtolower(
+                                                                            $escape($sobre['estado'])
+                                                                        ) ?>">
                                     ● <?= $escape($sobre['estado']) ?>
                                 </span>
+
                                 <button
                                     type="button"
                                     class="btn-icon"
@@ -209,16 +242,28 @@ $asset = fn(string $ruta) => $escape(Url::to($ruta, ['v' => '1']));
                                     data-codigo-sobre="<?= $escape($sobre['codigo_sobre']) ?>"
                                     data-placa="<?= $escape($sobre['placa']) ?>"
                                     data-estado="<?= $escape($sobre['estado']) ?>"
-                                    data-responsable="<?= $escape($sobre['nombre_responsable'] ?? 'Sin responsable') ?>">
-                                    <i class="bi bi-sliders"></i> Opciones
+                                    data-responsable="<?= $escape(
+                                                            $sobre['nombre_responsable']
+                                                                ?? 'Sin responsable'
+                                                        ) ?>">
+                                    <i class="bi bi-sliders"></i>
+                                    Opciones
                                 </button>
                             </div>
                         </div>
                     <?php endforeach; ?>
                 </div>
+
                 <div class="pagination-info">
-                    Mostrando <?= $escape($firstRecord) ?> a <?= $escape($lastRecord) ?> de <?= $escape($totalSobres) ?> resultados
+                    Mostrando
+                    <?= $escape($firstRecord) ?>
+                    a
+                    <?= $escape($lastRecord) ?>
+                    de
+                    <?= $escape($totalSobres) ?>
+                    resultados
                 </div>
+
                 <?php Pagination::render(
                     $currentPage,
                     $totalPages,
@@ -239,6 +284,7 @@ $asset = fn(string $ruta) => $escape(Url::to($ruta, ['v' => '1']));
 
 <!-- 1. El árbitro y los modales deben ir primero -->
 <script src="<?= $asset('/js/gestor-flujo-sobres.js') ?>"></script>
+<script src="<?= $asset('/js/components/progreso-documentos.js') ?>"></script>
 <script src="<?= $asset('/js/modales/modal-documentos.js') ?>"></script>
 <script src="<?= $asset('/js/modales/modal-opciones.js') ?>"></script>
 <script src="<?= $asset('/js/modales/modal-asignar.js') ?>"></script>
