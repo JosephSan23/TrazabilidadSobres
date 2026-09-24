@@ -128,6 +128,18 @@ $asset = fn(string $ruta) => $escape(Url::to($ruta, ['v' => '1']));
                     data-custodia-table>
 
                     <?php foreach ($sobres as $sobre): ?>
+
+                        <?php
+                        $estaEnFront = empty($sobre['nombre_responsable']);
+
+                        $etiquetaCustodia = $estaEnFront
+                            ? 'Disponible en Front'
+                            : 'Asignado';
+
+                        $claseCustodia = $estaEnFront
+                            ? 'disponible'
+                            : 'asignado';
+                        ?>
                         <div
                             class="custodia-card-item"
                             data-sobre-card
@@ -226,11 +238,8 @@ $asset = fn(string $ruta) => $escape(Url::to($ruta, ['v' => '1']));
                             </div>
 
                             <div class="custodia-card-item__footer">
-                                <span
-                                    class="badge-estado badge-estado--<?= strtolower(
-                                                                            $escape($sobre['estado'])
-                                                                        ) ?>">
-                                    ● <?= $escape($sobre['estado']) ?>
+                                <span class="badge-estado badge-estado--<?= $claseCustodia ?>">
+                                    ● <?= $escape($etiquetaCustodia) ?>
                                 </span>
 
                                 <button

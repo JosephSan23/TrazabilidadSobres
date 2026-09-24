@@ -55,6 +55,11 @@ $router->get('/sobres/{id_sobre}/mover', [
     'moveForm',
 ]);
 
+$router->post('/sobres/confirmar-fichas-impresas', [
+    $fichaCustodiaController,
+    'confirmPrinted',
+]);
+
 $router->post('/sobres/generar-fichas', [
     $fichaCustodiaController,
     'generate',

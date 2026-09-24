@@ -498,6 +498,18 @@
   font-size: 0.5rem;
 }
 
+.badge-estado--disponible {
+  border: 1px solid #bbf7d0;
+  background: #ecfdf3;
+  color: #15803d;
+}
+
+.badge-estado--asignado {
+  border: 1px solid #bfdbfe;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
 .badge-estado--creado {
   color: #1c8a4b;
   background-color: #e5f7ec;

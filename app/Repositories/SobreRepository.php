@@ -340,4 +340,38 @@ final class SobreRepository
 
         $statement->closeCursor();
     }
+
+    public function confirmPrintedFicha(
+        int $idTramite,
+        int $idUsuarioRegistra,
+        string $nombreUsuarioRegistra
+    ): array {
+        $statement = $this->connection->prepare(
+            <<<'SQL'
+        CALL sp_custodia_confirmar_ficha_impresa(
+            :id_tramite,
+            :id_usuario_registra,
+            :nombre_usuario_registra
+        )
+        SQL
+        );
+
+        $statement->execute([
+            'id_tramite' => $idTramite,
+            'id_usuario_registra' => $idUsuarioRegistra,
+            'nombre_usuario_registra' => $nombreUsuarioRegistra,
+        ]);
+
+        $sobre = $statement->fetch();
+
+        $statement->closeCursor();
+
+        if ($sobre === false) {
+            throw new RuntimeException(
+                'No fue posible confirmar la ficha impresa.'
+            );
+        }
+
+        return $sobre;
+    }
 }

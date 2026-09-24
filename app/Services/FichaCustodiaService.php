@@ -109,4 +109,118 @@ final class FichaCustodiaService
 
         return $sobresCreados;
     }
+
+    public function prepareForPrint(array $idsTramite): array
+    {
+        $idsUnicos = [];
+
+        foreach ($idsTramite as $idTramite) {
+            $idTramite = (int) $idTramite;
+
+            if ($idTramite < 1) {
+                throw new InvalidArgumentException(
+                    'Uno de los trámites seleccionados es inválido.'
+                );
+            }
+
+            $idsUnicos[$idTramite] = $idTramite;
+        }
+
+        $idsUnicos = array_values($idsUnicos);
+
+        if ($idsUnicos === []) {
+            throw new InvalidArgumentException(
+                'Selecciona al menos un trámite.'
+            );
+        }
+
+        $tramites = $this->tramiteService->findWithoutSobreByIds(
+            $idsUnicos
+        );
+
+        if (count($tramites) !== count($idsUnicos)) {
+            throw new RuntimeException(
+                'Uno o más trámites ya tienen una ficha de custodia.'
+            );
+        }
+
+        $fichas = [];
+
+        foreach ($tramites as $tramite) {
+            $idTramite = (int) $tramite['id_tramite'];
+            $placa = strtoupper(
+                trim((string) ($tramite['placa'] ?? ''))
+            );
+
+            if ($placa === '') {
+                throw new RuntimeException(
+                    'Uno de los trámites seleccionados no tiene placa.'
+                );
+            }
+
+            $fichas[] = [
+                'id_tramite' => $idTramite,
+                'placa' => $placa,
+                'codigo_sobre' => $idTramite . '-' . $placa,
+            ];
+        }
+
+        return $fichas;
+    }
+
+    public function confirmPrinted(
+        array $idsTramite,
+        int $idUsuarioRegistra,
+        string $nombreUsuarioRegistra
+    ): array {
+        if ($idUsuarioRegistra < 1) {
+            throw new InvalidArgumentException(
+                'El usuario que confirma la impresión es inválido.'
+            );
+        }
+
+        $idsUnicos = [];
+
+        foreach ($idsTramite as $idTramite) {
+            $idTramite = (int) $idTramite;
+
+            if ($idTramite < 1) {
+                throw new InvalidArgumentException(
+                    'Uno de los trámites seleccionados es inválido.'
+                );
+            }
+
+            $idsUnicos[$idTramite] = $idTramite;
+        }
+
+        $idsUnicos = array_values($idsUnicos);
+
+        if ($idsUnicos === []) {
+            throw new InvalidArgumentException(
+                'No hay fichas para confirmar.'
+            );
+        }
+
+        $tramitesSinSobre = $this->tramiteService->findWithoutSobreByIds(
+            $idsUnicos
+        );
+
+        if (count($tramitesSinSobre) !== count($idsUnicos)) {
+            throw new RuntimeException(
+                'Uno o más trámites ya tienen una ficha confirmada.'
+            );
+        }
+
+        $sobresCreados = [];
+
+        foreach ($idsUnicos as $idTramite) {
+            $sobresCreados[] = $this->sobreService->confirmPrintedFicha(
+                $idTramite,
+                $idUsuarioRegistra,
+                $nombreUsuarioRegistra
+            );
+        }
+
+        return $sobresCreados;
+    }
 }

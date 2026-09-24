@@ -5,6 +5,8 @@ declare(strict_types=1);
 use App\Core\Url;
 
 /** @var array<int, array<string, mixed>> $fichas */
+/** @var int $id_usuario_registra */
+/** @var string $nombre_usuario_registra */
 
 $escape = static fn(mixed $value): string => htmlspecialchars(
     (string) $value,
@@ -20,23 +22,63 @@ $escape = static fn(mixed $value): string => htmlspecialchars(
 <section class="fichas-print-page">
     <div class="fichas-print-page__header no-print">
         <div>
-            <h1>Fichas de custodia generadas</h1>
-            <p>Imprime y pega cada ficha en su sobre físico.</p>
+            <h1>Fichas listas para imprimir</h1>
+
+            <p>
+                Imprime las fichas, pégalas en los sobres físicos y luego
+                confirma que fueron impresas.
+            </p>
         </div>
 
-        <button
-            type="button"
-            class="btn btn-primary"
-            data-print-fichas>
-            Imprimir fichas
-        </button>
+        <div class="d-flex gap-2 flex-wrap">
+            <button
+                type="button"
+                class="btn btn-outline-primary"
+                data-print-fichas>
+                Imprimir fichas
+            </button>
+
+            <form
+                method="post"
+                action="<?= $escape(
+                            Url::to('/sobres/confirmar-fichas-impresas')
+                        ) ?>">
+
+                <input
+                    type="hidden"
+                    name="id_usuario_registra"
+                    value="<?= $escape($id_usuario_registra) ?>">
+
+                <?php foreach ($fichas as $ficha): ?>
+                    <input
+                        type="hidden"
+                        name="tramites[]"
+                        value="<?= $escape($ficha['id_tramite']) ?>">
+                <?php endforeach; ?>
+
+                <button
+                    type="submit"
+                    class="btn btn-primary"
+                    onclick="
+                        return confirm(
+                            '¿Confirmas que las fichas fueron impresas y pegadas en sus sobres físicos?'
+                        );
+                    ">
+                    Confirmar fichas impresas
+                </button>
+            </form>
+        </div>
     </div>
 
     <div class="fichas-grid">
         <?php foreach ($fichas as $ficha): ?>
             <article class="ficha-custodia">
                 <div class="ficha-header">
-                    <img src="<?= $escape(Url::to('/img/logo-azul-asiste-mas.png')) ?>" alt="Logo">
+                    <img
+                        src="<?= $escape(
+                                    Url::to('/img/logo-azul-asiste-mas.png')
+                                ) ?>"
+                        alt="Logo">
                 </div>
 
                 <dl class="ficha-custodia__data">
@@ -48,13 +90,11 @@ $escape = static fn(mixed $value): string => htmlspecialchars(
                     <div>
                         <dt>Siniestro:</dt>
                         <dd class="ficha-custodia__blank"></dd>
-
                     </div>
 
                     <div>
                         <dt>Analista:</dt>
                         <dd class="ficha-custodia__blank"></dd>
-
                     </div>
 
                     <div>
@@ -72,8 +112,12 @@ $escape = static fn(mixed $value): string => htmlspecialchars(
 
                 <svg
                     class="ficha-custodia__barcode"
-                    data-barcode-value="<?= $escape($ficha['codigo_sobre']) ?>"
-                    aria-label="Código de barras <?= $escape($ficha['codigo_sobre']) ?>"></svg>
+                    data-barcode-value="<?= $escape(
+                                            $ficha['codigo_sobre']
+                                        ) ?>"
+                    aria-label="Código de barras <?= $escape(
+                                                        $ficha['codigo_sobre']
+                                                    ) ?>"></svg>
 
                 <p class="ficha-custodia__code">
                     <?= $escape($ficha['codigo_sobre']) ?>

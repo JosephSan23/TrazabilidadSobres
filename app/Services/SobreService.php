@@ -304,4 +304,28 @@ final class SobreService
             $nombreUsuarioRegistra
         );
     }
+
+    public function confirmPrintedFicha(
+        int $idTramite,
+        int $idUsuarioRegistra,
+        string $nombreUsuarioRegistra
+    ): array {
+        if ($idTramite < 1) {
+            throw new InvalidArgumentException(
+                'El trámite es inválido.'
+            );
+        }
+
+        if ($idUsuarioRegistra < 1) {
+            throw new InvalidArgumentException(
+                'El usuario que confirma la impresión es inválido.'
+            );
+        }
+
+        return $this->sobreRepository->confirmPrintedFicha(
+            $idTramite,
+            $idUsuarioRegistra,
+            $nombreUsuarioRegistra
+        );
+    }
 }

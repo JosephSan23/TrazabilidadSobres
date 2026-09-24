@@ -6,6 +6,7 @@ namespace App\Controllers;
 
 use App\Core\Database;
 use App\Core\View;
+use App\Core\Url;
 use App\Repositories\SobreRepository;
 use App\Repositories\TramiteRepository;
 use App\Repositories\UbicacionRepository;
@@ -53,15 +54,13 @@ final class FichaCustodiaController
     /**
      * @param array<string, string> $parameters
      */
+
     public function generate(array $parameters = []): void
     {
         $idsTramite = $_POST['tramites'] ?? [];
-        $idUsuarioRegistra = (int) ($_POST['id_usuario_registra'] ?? 0);
-        $ubicacionesPorTramite = $_POST['ubicaciones'] ?? [];
-
-        if (!is_array($ubicacionesPorTramite)) {
-            $ubicacionesPorTramite = [];
-        }
+        $idUsuarioRegistra = (int) (
+            $_POST['id_usuario_registra'] ?? 0
+        );
 
         if (!is_array($idsTramite)) {
             $idsTramite = [];
@@ -78,17 +77,63 @@ final class FichaCustodiaController
                 );
             }
 
-            $fichas = $this->fichaCustodiaService->generateInitial(
+            $fichas = $this->fichaCustodiaService->prepareForPrint(
+                $idsTramite
+            );
+
+            View::render('fichas.print', [
+                'title' => 'Fichas listas para imprimir',
+                'fichas' => $fichas,
+                'id_usuario_registra' => $idUsuarioRegistra,
+                'nombre_usuario_registra' =>
+                $usuarioRegistra['nombre_completo'],
+            ]);
+        } catch (Throwable $exception) {
+            http_response_code(422);
+
+            echo htmlspecialchars(
+                $exception->getMessage(),
+                ENT_QUOTES,
+                'UTF-8'
+            );
+        }
+    }
+
+    public function confirmPrinted(array $parameters = []): void
+    {
+        $idsTramite = $_POST['tramites'] ?? [];
+        $idUsuarioRegistra = (int) (
+            $_POST['id_usuario_registra'] ?? 0
+        );
+
+        if (!is_array($idsTramite)) {
+            $idsTramite = [];
+        }
+
+        try {
+            $usuarioRegistra = $this->usuarioService->findActiveById(
+                $idUsuarioRegistra
+            );
+
+            if ($usuarioRegistra === null) {
+                throw new \RuntimeException(
+                    'El usuario que confirma la impresión no está disponible.'
+                );
+            }
+
+            $this->fichaCustodiaService->confirmPrinted(
                 $idsTramite,
-                $ubicacionesPorTramite,
                 $idUsuarioRegistra,
                 $usuarioRegistra['nombre_completo']
             );
 
-            View::render('fichas.print', [
-                'title' => 'Fichas de custodia generadas',
-                'fichas' => $fichas,
-            ]);
+            header(
+                'Location: ' . Url::to('/sobres'),
+                true,
+                302
+            );
+
+            exit;
         } catch (Throwable $exception) {
             http_response_code(422);
 
