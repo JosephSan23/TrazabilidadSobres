@@ -95,4 +95,9 @@ $router->post('/api/sobres/{id_sobre}/documentos', [
     'saveDocumentsFromScanner',
 ]);
 
+$router->post('/api/sobres/{id_sobre}/devolver-front', [
+    $sobreController,
+    'returnToFrontFromScanner',
+]);
+
 return $router;

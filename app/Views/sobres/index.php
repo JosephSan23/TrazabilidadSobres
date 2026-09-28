@@ -56,7 +56,6 @@ $asset = fn(string $ruta) => $escape(Url::to($ruta, ['v' => '1']));
     <div class="custodia-page__header">
         <div class="custodia-page__title-group">
             <h1>
-                QUITAR UBICACION
                 Sobres que ya tienen ficha actualizada generada
             </h1>
             <p>Consulta la ubicación, responsable y estado de los sobres asociados a cada trámite.</p>
@@ -130,13 +129,17 @@ $asset = fn(string $ruta) => $escape(Url::to($ruta, ['v' => '1']));
                     <?php foreach ($sobres as $sobre): ?>
 
                         <?php
-                        $estaEnFront = empty($sobre['nombre_responsable']);
+                        $nombreResponsable = trim(
+                            (string) ($sobre['nombre_responsable'] ?? '')
+                        );
 
-                        $etiquetaCustodia = $estaEnFront
+                        $disponibleEnFront = $nombreResponsable === '';
+
+                        $textoDisponibilidad = $disponibleEnFront
                             ? 'Disponible en Front'
                             : 'Asignado';
 
-                        $claseCustodia = $estaEnFront
+                        $claseDisponibilidad = $disponibleEnFront
                             ? 'disponible'
                             : 'asignado';
                         ?>
@@ -205,17 +208,11 @@ $asset = fn(string $ruta) => $escape(Url::to($ruta, ['v' => '1']));
                                             </span>
                                         </span>
 
-                                        <span
-                                            class="field-value"
-                                            data-campo-responsable>
-                                            <?php if ($sobre['nombre_responsable']): ?>
-                                                <?= $escape(
-                                                    $sobre['nombre_responsable']
-                                                ) ?>
+                                        <span class="field-value" data-campo-responsable>
+                                            <?php if ($nombreResponsable !== ''): ?>
+                                                <?= $escape($nombreResponsable) ?>
                                             <?php else: ?>
-                                                <span class="text-muted-italic">
-                                                    Front
-                                                </span>
+                                                <span class="text-muted-italic">Front</span>
                                             <?php endif; ?>
                                         </span>
                                     </li>
@@ -238,8 +235,15 @@ $asset = fn(string $ruta) => $escape(Url::to($ruta, ['v' => '1']));
                             </div>
 
                             <div class="custodia-card-item__footer">
-                                <span class="badge-estado badge-estado--<?= $claseCustodia ?>">
-                                    ● <?= $escape($etiquetaCustodia) ?>
+                                <span
+                                    class="badge-estado badge-estado--<?= $claseDisponibilidad ?>">
+                                    ● <?= $escape($textoDisponibilidad) ?>
+                                </span>
+
+                                <span
+                                    class="badge-documentacion"
+                                    data-estado-documentos>
+                                    Verificando documentos...
                                 </span>
 
                                 <button
@@ -251,10 +255,7 @@ $asset = fn(string $ruta) => $escape(Url::to($ruta, ['v' => '1']));
                                     data-codigo-sobre="<?= $escape($sobre['codigo_sobre']) ?>"
                                     data-placa="<?= $escape($sobre['placa']) ?>"
                                     data-estado="<?= $escape($sobre['estado']) ?>"
-                                    data-responsable="<?= $escape(
-                                                            $sobre['nombre_responsable']
-                                                                ?? 'Sin responsable'
-                                                        ) ?>">
+                                    data-responsable="<?= $escape($sobre['nombre_responsable'] ?? '') ?>">
                                     <i class="bi bi-sliders"></i>
                                     Opciones
                                 </button>
@@ -295,6 +296,7 @@ $asset = fn(string $ruta) => $escape(Url::to($ruta, ['v' => '1']));
 <script src="<?= $asset('/js/gestor-flujo-sobres.js') ?>"></script>
 <script src="<?= $asset('/js/components/progreso-documentos.js') ?>"></script>
 <script src="<?= $asset('/js/modales/modal-documentos.js') ?>"></script>
+<script src="<?= $asset('js/modales/modal_disponibilidad.js') ?>"></script>
 <script src="<?= $asset('/js/modales/modal-opciones.js') ?>"></script>
 <script src="<?= $asset('/js/modales/modal-asignar.js') ?>"></script>
 

@@ -346,10 +346,19 @@
 }
 
 .custodia-card-item__title h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
   margin: 0;
-  font-size: 1.15rem;
+  font-size: 1.05rem;
   font-weight: 700;
   color: #1a1a1a;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.custodia-card-item__title .badge-placa {
+  flex-shrink: 0;
 }
 
 .custodia-card-item__fields {
@@ -393,12 +402,34 @@
 
 .custodia-card-item__footer {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
+  gap: 0.6rem 0.5rem;
   padding: 0.9rem 1.1rem;
   border-top: 1px solid #ececec;
   margin-top: 0.25rem;
+}
+
+.custodia-card-item__footer .badge-estado {
+  order: 1;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.custodia-card-item__footer .btn-icon {
+  order: 2;
+  margin-left: auto;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.custodia-card-item__footer .badge-documentacion {
+  order: 3;
+  flex: 0 0 100%;
+  max-width: 100%;
+  justify-content: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* ==========================================
@@ -694,6 +725,49 @@
 
 .custodia-progreso-mini--completo .custodia-progreso-mini__texto {
   color: #166534;
+}
+
+.badge-documentacion {
+  display: inline-flex;
+  align-items: center;
+  min-height: 25px;
+  padding: 0.25rem 0.55rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 0.69rem;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.badge-documentacion--pendiente {
+  border-color: #dbe3ee;
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.badge-documentacion--incompleta {
+  border-color: #fecaca;
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.badge-documentacion--completa {
+  border-color: #bbf7d0;
+  background: #ecfdf3;
+  color: #15803d;
+}
+
+.badge-documentacion--sin-configuracion {
+  border-color: #e2e8f0;
+  background: #f8fafc;
+  color: #64748b;
+}
+
+.badge-documentacion--error {
+  border-color: #fecaca;
+  background: #fff1f2;
+  color: #be123c;
 }
 
 @keyframes custodia-progreso-brillo {

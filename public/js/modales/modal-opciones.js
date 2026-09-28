@@ -35,8 +35,11 @@
                     <button type="button" class="modal-opciones-btn" data-accion="marcar-documentos">
                         Marcar documentos
                     </button>
-                    <button type="button" class="modal-opciones-btn" data-accion="cambiar-estado">
-                        Cambiar estado
+                    <button
+                      type="button"
+                      class="modal-opciones-btn"
+                      data-accion="devolver-front">
+                      Devolver a Front
                     </button>
                     <button type="button" class="modal-opciones-btn" data-accion="asignar-persona">
                         Asignar a persona
@@ -135,6 +138,17 @@
       (datosSobre.placa || "-");
 
     actualizarBadgeCola();
+    const botonDevolverFront = modal.querySelector(
+      '[data-accion="devolver-front"]',
+    );
+
+    const responsable = String(
+      datosSobre.responsable || datosSobre.nombre_responsable || "",
+    ).trim();
+
+    if (botonDevolverFront) {
+      botonDevolverFront.hidden = responsable === "";
+    }
 
     modal.style.display = "flex";
   }
@@ -176,8 +190,8 @@
         modalDestino = window.ModalDocumento;
         break;
 
-      case "cambiar-estado":
-        modalDestino = window.ModalEstado;
+      case "devolver-front":
+        modalDestino = window.ModalDisponibilidad;
         break;
 
       case "asignar-persona":

@@ -700,4 +700,61 @@ final class SobreController
             ], 500);
         }
     }
+
+    public function returnToFrontFromScanner(
+        array $parameters
+    ): void {
+        try {
+            $idSobre = $this->positiveInteger(
+                $parameters['id_sobre'] ?? null,
+                'El sobre es inválido.'
+            );
+
+            $idUsuarioRegistra = $this->positiveInteger(
+                $_POST['id_usuario_registra'] ?? null,
+                'Selecciona quién registra la devolución.'
+            );
+
+            $usuarioRegistra = $this->usuarioService->findActiveById(
+                $idUsuarioRegistra
+            );
+
+            if ($usuarioRegistra === null) {
+                throw new \InvalidArgumentException(
+                    'El usuario que registra no está disponible.'
+                );
+            }
+
+            $this->sobreService->returnToFront(
+                $idSobre,
+                $idUsuarioRegistra,
+                $usuarioRegistra['nombre_completo']
+            );
+
+            $this->json([
+                'ok' => true,
+                'message' => 'El sobre quedó disponible en Front.',
+                'sobre' => [
+                    'id_sobre' => $idSobre,
+                    'nombre_responsable' => null,
+                    'situacion' => 'DISPONIBLE_FRONT',
+                ],
+            ]);
+        } catch (\InvalidArgumentException $exception) {
+            $this->json([
+                'ok' => false,
+                'message' => $exception->getMessage(),
+            ], 422);
+        } catch (\RuntimeException $exception) {
+            $this->json([
+                'ok' => false,
+                'message' => $exception->getMessage(),
+            ], 404);
+        } catch (\Throwable $exception) {
+            $this->json([
+                'ok' => false,
+                'message' => 'No fue posible devolver el sobre a Front.',
+            ], 500);
+        }
+    }
 }

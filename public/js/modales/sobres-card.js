@@ -85,13 +85,16 @@
         }).length;
 
         renderizarProgreso(barra, disponibles, documentos.length);
+        renderizarEstadoDocumentos(card, disponibles, documentos.length);
       })
       .catch(function () {
-        barra.innerHTML = `
-                <span class="custodia-progreso-mini__texto">
-                    0%
-                </span>
-            `;
+        renderizarProgreso(barra, 0, 0);
+
+        const badge = card.querySelector("[data-estado-documentos]");
+        if (badge) {
+          badge.className = "badge-documentacion badge-documentacion--error";
+          badge.textContent = "Documentación no disponible";
+        }
       });
   }
 
@@ -112,7 +115,7 @@
 
             <div
                 class="custodia-progreso-mini__avance"
-                style="width: ${porcentaje}%">
+                style="width: calc(${porcentaje}%)"
             </div>
 
             <span class="custodia-progreso-mini__texto">
@@ -120,6 +123,49 @@
             </span>
         </div>
     `;
+  }
+
+  function obtenerEstadoDocumentacion(disponibles, total) {
+    if (total === 0) {
+      return {
+        clase: "sin-configuracion",
+        texto: "Sin documentos configurados",
+      };
+    }
+
+    if (disponibles === 0) {
+      return {
+        clase: "pendiente",
+        texto: "Pendiente de verificación",
+      };
+    }
+
+    if (disponibles < total) {
+      return {
+        clase: "incompleta",
+        texto: "Documentación incompleta",
+      };
+    }
+
+    return {
+      clase: "completa",
+      texto: "Documentación completa",
+    };
+  }
+
+  function renderizarEstadoDocumentos(card, disponibles, total) {
+    const badge = card.querySelector("[data-estado-documentos]");
+
+    if (!badge) {
+      return;
+    }
+
+    const estado = obtenerEstadoDocumentacion(disponibles, total);
+
+    badge.className =
+      "badge-documentacion badge-documentacion--" + estado.clase;
+
+    badge.textContent = estado.texto;
   }
 
   function cargarProgresosEn(contenedor) {
