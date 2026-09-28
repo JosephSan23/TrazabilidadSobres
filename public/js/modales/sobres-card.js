@@ -115,7 +115,7 @@
 
             <div
                 class="custodia-progreso-mini__avance"
-                style="width: calc(${porcentaje}%)"
+                style="width: calc(${porcentaje}%)">
             </div>
 
             <span class="custodia-progreso-mini__texto">
