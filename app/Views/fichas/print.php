@@ -13,6 +13,9 @@ $escape = static fn(mixed $value): string => htmlspecialchars(
     ENT_QUOTES,
     'UTF-8'
 );
+
+// 👇 Partir las fichas en grupos de 4 (2 columnas x 2 filas por hoja)
+$gruposFichas = array_chunk($fichas, 4);
 ?>
 
 <link
@@ -70,61 +73,63 @@ $escape = static fn(mixed $value): string => htmlspecialchars(
         </div>
     </div>
 
-    <div class="fichas-grid">
-        <?php foreach ($fichas as $ficha): ?>
-            <article class="ficha-custodia">
-                <div class="ficha-header">
-                    <img
-                        src="<?= $escape(
-                                    Url::to('/img/logo-azul-asiste-mas.png')
-                                ) ?>"
-                        alt="Logo">
-                </div>
-
-                <dl class="ficha-custodia__data">
-                    <div>
-                        <dt>Placa:</dt>
-                        <dd><?= $escape($ficha['placa']) ?></dd>
+    <?php foreach ($gruposFichas as $grupo): ?>
+        <div class="fichas-grid">
+            <?php foreach ($grupo as $ficha): ?>
+                <article class="ficha-custodia">
+                    <div class="ficha-header">
+                        <img
+                            src="<?= $escape(
+                                        Url::to('/img/logo-azul-asiste-mas.png')
+                                    ) ?>"
+                            alt="Logo">
                     </div>
 
-                    <div>
-                        <dt>Siniestro:</dt>
-                        <dd class="ficha-custodia__blank"></dd>
-                    </div>
+                    <dl class="ficha-custodia__data">
+                        <div>
+                            <dt>Placa:</dt>
+                            <dd><?= $escape($ficha['placa']) ?></dd>
+                        </div>
 
-                    <div>
-                        <dt>Analista:</dt>
-                        <dd class="ficha-custodia__blank"></dd>
-                    </div>
+                        <div>
+                            <dt>Siniestro:</dt>
+                            <dd class="ficha-custodia__blank"></dd>
+                        </div>
 
-                    <div>
-                        <dt>Destino:</dt>
-                        <dd class="ficha-custodia__blank"></dd>
-                    </div>
+                        <div>
+                            <dt>Analista:</dt>
+                            <dd class="ficha-custodia__blank"></dd>
+                        </div>
 
-                    <div>
-                        <dt>Aseguradora:</dt>
-                        <dd class="ficha-custodia__blank"></dd>
-                    </div>
-                </dl>
+                        <div>
+                            <dt>Destino:</dt>
+                            <dd class="ficha-custodia__blank"></dd>
+                        </div>
 
-                <div class="ficha-custodia__divider"></div>
+                        <div>
+                            <dt>Aseguradora:</dt>
+                            <dd class="ficha-custodia__blank"></dd>
+                        </div>
+                    </dl>
 
-                <svg
-                    class="ficha-custodia__barcode"
-                    data-barcode-value="<?= $escape(
-                                            $ficha['codigo_sobre']
-                                        ) ?>"
-                    aria-label="Código de barras <?= $escape(
-                                                        $ficha['codigo_sobre']
-                                                    ) ?>"></svg>
+                    <div class="ficha-custodia__divider"></div>
 
-                <p class="ficha-custodia__code">
-                    <?= $escape($ficha['codigo_sobre']) ?>
-                </p>
-            </article>
-        <?php endforeach; ?>
-    </div>
+                    <svg
+                        class="ficha-custodia__barcode"
+                        data-barcode-value="<?= $escape(
+                                                $ficha['codigo_sobre']
+                                            ) ?>"
+                        aria-label="Código de barras <?= $escape(
+                                                            $ficha['codigo_sobre']
+                                                        ) ?>"></svg>
+
+                    <p class="ficha-custodia__code">
+                        <?= $escape($ficha['codigo_sobre']) ?>
+                    </p>
+                </article>
+            <?php endforeach; ?>
+        </div>
+    <?php endforeach; ?>
 </section>
 
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>

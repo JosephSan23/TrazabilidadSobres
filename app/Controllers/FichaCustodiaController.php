@@ -9,12 +9,10 @@ use App\Core\View;
 use App\Core\Url;
 use App\Repositories\SobreRepository;
 use App\Repositories\TramiteRepository;
-use App\Repositories\UbicacionRepository;
 use App\Repositories\UsuarioRepository;
 use App\Services\FichaCustodiaService;
 use App\Services\SobreService;
 use App\Services\TramiteService;
-use App\Services\UbicacionService;
 use App\Services\UsuarioService;
 use Throwable;
 
@@ -32,9 +30,6 @@ final class FichaCustodiaController
             new TramiteRepository($connection)
         );
 
-        $ubicacionService = new UbicacionService(
-            new UbicacionRepository($connection)
-        );
 
         $sobreService = new SobreService(
             new SobreRepository($connection)
@@ -46,7 +41,6 @@ final class FichaCustodiaController
 
         $this->fichaCustodiaService = new FichaCustodiaService(
             $tramiteService,
-            $ubicacionService,
             $sobreService
         );
     }
@@ -128,7 +122,9 @@ final class FichaCustodiaController
             );
 
             header(
-                'Location: ' . Url::to('/sobres'),
+                'Location: ' . Url::to('/sobres', [
+                    'fichas_confirmadas' => 1,
+                ]),
                 true,
                 302
             );

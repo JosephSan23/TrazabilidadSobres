@@ -306,3 +306,20 @@ $asset = fn(string $ruta) => $escape(Url::to($ruta, ['v' => '1']));
 <script src="<?= $asset('/js/modales/sobres-card.js') ?>"></script>
 
 <script src="<?= $asset('/js/escaneo/escanner.js') ?>"></script>
+
+<?php if (($_GET['fichas_confirmadas'] ?? '') === '1'): ?>
+    <script>
+        sessionStorage.removeItem(
+            "custodia.tramitesPendientesSeleccionados"
+        );
+
+        const url = new URL(window.location.href);
+
+        url.searchParams.delete("fichas_confirmadas");
+
+        window.history.replaceState({},
+            document.title,
+            url.toString()
+        );
+    </script>
+<?php endif; ?>

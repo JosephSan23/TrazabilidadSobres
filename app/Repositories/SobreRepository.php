@@ -374,4 +374,28 @@ final class SobreRepository
 
         return $sobre;
     }
+
+    public function returnToFront(
+        int $idSobre,
+        int $idUsuarioRegistra,
+        string $nombreUsuarioRegistra
+    ): void {
+        $statement = $this->connection->prepare(
+            <<<'SQL'
+        CALL sp_custodia_devolver_a_front(
+            :id_sobre,
+            :id_usuario_registra,
+            :nombre_usuario_registra
+        )
+        SQL
+        );
+
+        $statement->execute([
+            'id_sobre' => $idSobre,
+            'id_usuario_registra' => $idUsuarioRegistra,
+            'nombre_usuario_registra' => $nombreUsuarioRegistra,
+        ]);
+
+        $statement->closeCursor();
+    }
 }

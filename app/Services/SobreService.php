@@ -328,4 +328,34 @@ final class SobreService
             $nombreUsuarioRegistra
         );
     }
+
+    public function returnToFront(
+        int $idSobre,
+        int $idUsuarioRegistra,
+        string $nombreUsuarioRegistra
+    ): void {
+        if ($idSobre < 1) {
+            throw new InvalidArgumentException(
+                'El sobre es inválido.'
+            );
+        }
+
+        if ($idUsuarioRegistra < 1) {
+            throw new InvalidArgumentException(
+                'El usuario que registra es inválido.'
+            );
+        }
+
+        $sobre = $this->sobreRepository->findById($idSobre);
+
+        if ($sobre === null) {
+            throw new \RuntimeException('El sobre no existe');
+        }
+
+        $this->sobreRepository->returnToFront(
+            $idSobre,
+            $idUsuarioRegistra,
+            $nombreUsuarioRegistra
+        );
+    }
 }

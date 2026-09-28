@@ -11,128 +11,12 @@ final class FichaCustodiaService
 {
     public function __construct(
         private TramiteService $tramiteService,
-        private UbicacionService $ubicacionService,
         private SobreService $sobreService
     ) {}
 
-    public function generateInitial(
-        array $idsTramite,
-        array $ubicacionesPorTramite,
-        int $idUsuarioRegistra,
-        string $nombreUsuarioRegistra
-    ): array {
-        if ($idUsuarioRegistra <= 0) {
-            throw new InvalidArgumentException(
-                'Debes seleccionar el usuario que genera las fichas.'
-            );
-        }
-
-        $nombreUsuarioRegistra = trim($nombreUsuarioRegistra);
-
-        if ($nombreUsuarioRegistra === '') {
-            throw new InvalidArgumentException(
-                'El nombre del usuario que genera las fichas no es válido.'
-            );
-        }
-
-        $ubicacionPendiente = $this->ubicacionService
-            ->findActiveByCode('PEND-UBICAR');
-
-        if ($ubicacionPendiente === null) {
-            throw new RuntimeException(
-                'No existe la ubicación activa PEND-UBICAR.'
-            );
-        }
-
-        $tramites = $this->tramiteService
-            ->findWithoutSobreByIds($idsTramite);
-
-        if ($tramites === []) {
-            throw new RuntimeException(
-                'Los trámites seleccionados ya tienen ficha o no existen.'
-            );
-        }
-
-        $sobresCreados = [];
-        $ubicacionesConsultadas = [];
-
-        foreach ($tramites as $tramite) {
-            $idTramite = (int) $tramite['id_tramite'];
-
-            $idUbicacion = filter_var(
-                $ubicacionesPorTramite[$idTramite] ?? null,
-                FILTER_VALIDATE_INT
-            );
-
-            if ($idUbicacion === false || $idUbicacion <= 0) {
-                $ubicacionInicial = $ubicacionPendiente;
-            } else {
-                if (!isset($ubicacionesConsultadas[$idUbicacion])) {
-                    $ubicacionesConsultadas[$idUbicacion] = $this
-                        ->ubicacionService
-                        ->findById($idUbicacion);
-                }
-
-                $ubicacionInicial = $ubicacionesConsultadas[$idUbicacion];
-
-                if (
-                    $ubicacionInicial === null
-                    || !(bool) $ubicacionInicial['activo']
-                ) {
-                    throw new RuntimeException(
-                        sprintf(
-                            'La ubicación seleccionada para el trámite %d no existe o está inactiva.',
-                            $idTramite
-                        )
-                    );
-                }
-            }
-
-            $sobreCreado = $this->sobreService->create(
-                $idTramite,
-                (int) $ubicacionInicial['id_ubicacion'],
-                null,
-                null,
-                $idUsuarioRegistra,
-                $nombreUsuarioRegistra,
-                'Generación inicial de ficha de custodia.'
-            );
-
-            $sobresCreados[] = [
-                'id_sobre' => $sobreCreado['id_sobre'],
-                'codigo_sobre' => $sobreCreado['codigo_sobre'],
-                'id_tramite' => $idTramite,
-                'placa' => (string) $tramite['placa'],
-                'ubicacion' => (string) $ubicacionInicial['nombre'],
-            ];
-        }
-
-        return $sobresCreados;
-    }
-
     public function prepareForPrint(array $idsTramite): array
     {
-        $idsUnicos = [];
-
-        foreach ($idsTramite as $idTramite) {
-            $idTramite = (int) $idTramite;
-
-            if ($idTramite < 1) {
-                throw new InvalidArgumentException(
-                    'Uno de los trámites seleccionados es inválido.'
-                );
-            }
-
-            $idsUnicos[$idTramite] = $idTramite;
-        }
-
-        $idsUnicos = array_values($idsUnicos);
-
-        if ($idsUnicos === []) {
-            throw new InvalidArgumentException(
-                'Selecciona al menos un trámite.'
-            );
-        }
+        $idsUnicos = $this->normalizeIds($idsTramite);
 
         $tramites = $this->tramiteService->findWithoutSobreByIds(
             $idsUnicos
@@ -179,31 +63,22 @@ final class FichaCustodiaService
             );
         }
 
-        $idsUnicos = [];
+        $nombreUsuarioRegistra = trim($nombreUsuarioRegistra);
 
-        foreach ($idsTramite as $idTramite) {
-            $idTramite = (int) $idTramite;
-
-            if ($idTramite < 1) {
-                throw new InvalidArgumentException(
-                    'Uno de los trámites seleccionados es inválido.'
-                );
-            }
-
-            $idsUnicos[$idTramite] = $idTramite;
-        }
-
-        $idsUnicos = array_values($idsUnicos);
-
-        if ($idsUnicos === []) {
+        if ($nombreUsuarioRegistra === '') {
             throw new InvalidArgumentException(
-                'No hay fichas para confirmar.'
+                'El nombre del usuario que confirma la impresión es inválido.'
             );
         }
 
-        $tramitesSinSobre = $this->tramiteService->findWithoutSobreByIds(
-            $idsUnicos
-        );
+        $idsUnicos = $this->normalizeIds($idsTramite);
+
+        /*
+         * Se valida de nuevo porque alguien pudo haber confirmado
+         * una ficha mientras el usuario la estaba imprimiendo.
+         */
+        $tramitesSinSobre = $this->tramiteService
+            ->findWithoutSobreByIds($idsUnicos);
 
         if (count($tramitesSinSobre) !== count($idsUnicos)) {
             throw new RuntimeException(
@@ -214,13 +89,45 @@ final class FichaCustodiaService
         $sobresCreados = [];
 
         foreach ($idsUnicos as $idTramite) {
-            $sobresCreados[] = $this->sobreService->confirmPrintedFicha(
-                $idTramite,
-                $idUsuarioRegistra,
-                $nombreUsuarioRegistra
-            );
+            $sobresCreados[] = $this->sobreService
+                ->confirmPrintedFicha(
+                    $idTramite,
+                    $idUsuarioRegistra,
+                    $nombreUsuarioRegistra
+                );
         }
 
         return $sobresCreados;
+    }
+
+    private function normalizeIds(array $idsTramite): array
+    {
+        $idsUnicos = [];
+
+        foreach ($idsTramite as $idTramite) {
+            $idTramite = filter_var(
+                $idTramite,
+                FILTER_VALIDATE_INT,
+                ['options' => ['min_range' => 1]]
+            );
+
+            if ($idTramite === false) {
+                throw new InvalidArgumentException(
+                    'Uno de los trámites seleccionados es inválido.'
+                );
+            }
+
+            $idsUnicos[(int) $idTramite] = (int) $idTramite;
+        }
+
+        $idsUnicos = array_values($idsUnicos);
+
+        if ($idsUnicos === []) {
+            throw new InvalidArgumentException(
+                'Selecciona al menos un trámite.'
+            );
+        }
+
+        return $idsUnicos;
     }
 }

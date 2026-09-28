@@ -11,26 +11,17 @@
       if (Array.isArray(saved)) {
         saved.forEach((id) => {
           const numericId = Number(id);
-
           if (numericId > 0) {
-            selected.set(numericId, {
-              id: numericId,
-              placa: "",
-            });
+            selected.set(numericId, { id: numericId, placa: "" });
           }
         });
-
         return selected;
       }
 
       Object.values(saved).forEach((tramite) => {
         const id = Number(tramite.id);
-
         if (id > 0) {
-          selected.set(id, {
-            id,
-            placa: String(tramite.placa || ""),
-          });
+          selected.set(id, { id, placa: String(tramite.placa || "") });
         }
       });
 
@@ -41,50 +32,21 @@
   };
 
   const saveSelectedTramites = (selectedTramites) => {
-    const data = Object.fromEntries(selectedTramites);
-
-    sessionStorage.setItem(storageKey, JSON.stringify(data));
+    sessionStorage.setItem(
+      storageKey,
+      JSON.stringify(Object.fromEntries(selectedTramites)),
+    );
   };
 
   const selectedTramites = getSelectedTramites();
 
-  const checkboxes = [...document.querySelectorAll("[data-tramite-selection]")];
-
-  const selectPageCheckbox = document.querySelector(
-    "[data-select-current-page]",
-  );
-
-  const selectedCount = document.querySelector("[data-selected-count]");
-
-  const openModalButton = document.querySelector(
-    "[data-open-generation-modal]",
-  );
-
-  const generationModal = document.querySelector("[data-generation-modal]");
-
-  const selectedPlates = document.querySelector("[data-selected-plates]");
-
-  const closeModalButtons = document.querySelectorAll(
-    "[data-close-generation-modal]",
-  );
-
-  const bulkForm = document.querySelector("[data-bulk-fichas-form]");
-
-  const addTramite = (id, placa) => {
-    selectedTramites.set(id, {
-      id,
-      placa,
-    });
-  };
+  const addTramite = (id, placa) => selectedTramites.set(id, { id, placa });
+  const selectedPlates = document.querySelector(
+    "[data-selected-plates]",
+  )
 
   const updateSelectedPlates = () => {
     if (!selectedPlates) {
-      return;
-    }
-
-    const template = document.querySelector("[data-location-select-template]");
-
-    if (!(template instanceof HTMLTemplateElement)) {
       return;
     }
 
@@ -101,28 +63,27 @@
         const procedureCell = document.createElement("td");
         procedureCell.textContent = String(tramite.id);
 
-        const locationCell = document.createElement("td");
-
-        const locationTemplate = template.content.cloneNode(true);
-        const select = locationTemplate.querySelector("select");
-
-        if (select) {
-          select.name = `ubicaciones[${tramite.id}]`;
-          select.setAttribute(
-            "aria-label",
-            `Ubicación inicial para trámite ${tramite.id}`,
-          );
-        }
-
-        locationCell.appendChild(locationTemplate);
-
-        row.append(plateCell, procedureCell, locationCell);
+        row.append(plateCell, procedureCell);
 
         selectedPlates.appendChild(row);
       });
   };
 
   const updateInterface = () => {
+    const checkboxes = [
+      ...document.querySelectorAll("[data-tramite-selection]"),
+    ];
+    const selectPageCheckbox = document.querySelector(
+      "[data-select-current-page]",
+    );
+    const selectedCount = document.querySelector("[data-selected-count]");
+    const openModalButton = document.querySelector(
+      "[data-open-generation-modal]",
+    );
+    const clearSelectionButton = document.querySelector(
+      "[data-clear-selected-tramites]",
+    );
+
     checkboxes.forEach((checkbox) => {
       checkbox.checked = selectedTramites.has(Number(checkbox.value));
     });
@@ -143,11 +104,17 @@
       openModalButton.disabled = selectedTramites.size === 0;
     }
 
+    if (clearSelectionButton) {
+      clearSelectionButton.disabled = selectedTramites.size === 0;
+    }
+
     updateSelectedPlates();
   };
 
-  checkboxes.forEach((checkbox) => {
-    checkbox.addEventListener("change", () => {
+  document.addEventListener("change", (event) => {
+    const checkbox = event.target.closest("[data-tramite-selection]");
+
+    if (checkbox) {
       const idTramite = Number(checkbox.value);
       const placa = String(checkbox.dataset.tramitePlaca || "");
 
@@ -159,14 +126,21 @@
 
       saveSelectedTramites(selectedTramites);
       updateInterface();
-    });
-  });
+      return;
+    }
 
-  if (selectPageCheckbox) {
-    selectPageCheckbox.addEventListener("change", () => {
-      checkboxes.forEach((checkbox) => {
-        const idTramite = Number(checkbox.value);
-        const placa = String(checkbox.dataset.tramitePlaca || "");
+    const selectPageCheckbox = event.target.closest(
+      "[data-select-current-page]",
+    );
+
+    if (selectPageCheckbox) {
+      const checkboxes = [
+        ...document.querySelectorAll("[data-tramite-selection]"),
+      ];
+
+      checkboxes.forEach((cb) => {
+        const idTramite = Number(cb.value);
+        const placa = String(cb.dataset.tramitePlaca || "");
 
         if (selectPageCheckbox.checked) {
           addTramite(idTramite, placa);
@@ -177,72 +151,64 @@
 
       saveSelectedTramites(selectedTramites);
       updateInterface();
-    });
-  }
+    }
+  });
 
-  if (openModalButton && generationModal) {
-    openModalButton.addEventListener("click", () => {
+  document.addEventListener("click", (event) => {
+    if (event.target.closest("[data-open-generation-modal]")) {
       updateSelectedPlates();
+      document.querySelector("[data-generation-modal]")?.showModal?.();
+      return;
+    }
 
-      if (typeof generationModal.showModal === "function") {
-        generationModal.showModal();
+    if (event.target.closest("[data-close-generation-modal]")) {
+      document.querySelector("[data-generation-modal]")?.close();
+      return;
+    }
+
+    if (event.target.closest("[data-clear-selected-tramites]")) {
+      selectedTramites.clear();
+      sessionStorage.removeItem(storageKey);
+      updateInterface();
+    }
+  });
+
+  document.addEventListener(
+    "cancel",
+    (event) => {
+      if (event.target.matches("[data-generation-modal]")) {
+        event.preventDefault();
+        event.target.close();
       }
-    });
-  }
+    },
+    true,
+  );
 
-  closeModalButtons.forEach((button) => {
-    button.addEventListener("click", () => {
-      generationModal?.close();
+  document.addEventListener("submit", (event) => {
+    const bulkForm = event.target.closest("[data-bulk-fichas-form]");
+
+    if (!bulkForm) return;
+
+    if (selectedTramites.size === 0) {
+      event.preventDefault();
+      return;
+    }
+
+    bulkForm
+      .querySelectorAll("[data-selected-tramite-input]")
+      .forEach((input) => input.remove());
+
+    selectedTramites.forEach((tramite) => {
+      const input = document.createElement("input");
+      input.type = "hidden";
+      input.name = "tramites[]";
+      input.value = String(tramite.id);
+      input.dataset.selectedTramiteInput = "true";
+      bulkForm.appendChild(input);
     });
   });
 
-  if (generationModal) {
-    generationModal.addEventListener("cancel", (event) => {
-      event.preventDefault();
-      generationModal.close();
-    });
-  }
-
-  if (bulkForm) {
-    bulkForm.addEventListener("submit", (event) => {
-      if (selectedTramites.size === 0) {
-        event.preventDefault();
-
-        return;
-      }
-
-      bulkForm
-        .querySelectorAll("[data-selected-tramite-input]")
-        .forEach((input) => input.remove());
-
-      selectedTramites.forEach((tramite) => {
-        const input = document.createElement("input");
-
-        input.type = "hidden";
-        input.name = "tramites[]";
-        input.value = String(tramite.id);
-        input.dataset.selectedTramiteInput = "true";
-
-        bulkForm.appendChild(input);
-      });
-    });
-  }
-
-  const filterForm = document.querySelector("[data-pending-filter-form]");
-
-  if (filterForm) {
-    let filterTimer;
-
-    filterForm.querySelectorAll('input[type="search"]').forEach((input) => {
-      input.addEventListener("input", () => {
-        window.clearTimeout(filterTimer);
-
-        filterTimer = window.setTimeout(() => {
-          filterForm.submit();
-        }, 400);
-      });
-    });
-  }
-
   updateInterface();
+
+  document.addEventListener("auto-filter:updated", updateInterface);
 })();
