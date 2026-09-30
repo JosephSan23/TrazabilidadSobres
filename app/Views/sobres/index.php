@@ -119,6 +119,39 @@ $asset = fn(string $ruta) => $escape(Url::to($ruta, ['v' => '1']));
                             <a href="?estado=finalizados" class="filter-tab filter-tab--finalizados">Finalizados</a>
                         </div>
                     </div>
+                    <!-- <?php
+                    $tabs = [
+                        'todos'       => 'Todos',
+                        'creados'     => 'Creados',
+                        'gestion'     => 'Gestión',
+                        'incompletos' => 'Incompletos',
+                        'completos'   => 'Completos',
+                        'radicados'   => 'Radicados',
+                        'finalizados' => 'Finalizados',
+                    ];
+
+                    $estadoActual = $_GET['estado'] ?? 'todos';
+                    if (!isset($tabs[$estadoActual])) {
+                        $estadoActual = 'todos';
+                    }
+                    ?>
+                    <div class="custodia-results-row__actions">
+                        <div class="filter-tabs">
+                            <?php foreach ($tabs as $clave => $etiqueta): ?>
+                                <?php
+                                // Conserva otros parámetros de la URL (búsqueda, etc.) y cambia solo estado
+                                $query = http_build_query(array_merge($_GET, ['estado' => $clave]));
+                                ?>
+                                <a href="?<?= htmlspecialchars($query) ?>"
+                                    class="filter-tab filter-tab--<?= $clave ?> <?= $estadoActual === $clave ? 'is-active' : '' ?>">
+                                    <?= $etiqueta ?>
+                                    <?php if (isset($conteos[$clave])): ?>
+                                        <span class="filter-tab__count"><?= (int) $conteos[$clave] ?></span>
+                                    <?php endif; ?>
+                                </a>
+                            <?php endforeach; ?>
+                        </div>
+                    </div> -->
                 </div>
 
                 <div
@@ -195,7 +228,7 @@ $asset = fn(string $ruta) => $escape(Url::to($ruta, ['v' => '1']));
                                         <span class="field-icon-label">
                                             <i class="bi bi-car-front"></i>
                                             <span class="field-label">
-                                                Aseguradora:
+                                                Linea Negocio:
                                             </span>
                                         </span>
                                     </li>
@@ -296,7 +329,8 @@ $asset = fn(string $ruta) => $escape(Url::to($ruta, ['v' => '1']));
 <script src="<?= $asset('/js/gestor-flujo-sobres.js') ?>"></script>
 <script src="<?= $asset('/js/components/progreso-documentos.js') ?>"></script>
 <script src="<?= $asset('/js/modales/modal-documentos.js') ?>"></script>
-<script src="<?= $asset('js/modales/modal_disponibilidad.js') ?>"></script>
+<script src="<?= $asset('/js/modales/modal_disponibilidad.js') ?>"></script>
+<script src="<?= $asset('/js/modales/modal-historial.js') ?>"></script>
 <script src="<?= $asset('/js/modales/modal-opciones.js') ?>"></script>
 <script src="<?= $asset('/js/modales/modal-asignar.js') ?>"></script>
 

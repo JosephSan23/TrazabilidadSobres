@@ -36,6 +36,13 @@
                         Marcar documentos
                     </button>
                     <button
+                        type="button"
+                        class="modal-opciones-btn"
+                        data-accion="ver-historial">
+                        <i class="bi bi-clock-history"></i>
+                        Ver historial
+                    </button>
+                    <button
                       type="button"
                       class="modal-opciones-btn"
                       data-accion="devolver-front">
@@ -189,6 +196,20 @@
       case "marcar-documentos":
         modalDestino = window.ModalDocumento;
         break;
+
+      case "ver-historial":
+        if (
+          typeof window.ModalHistorial === "undefined" ||
+          typeof window.ModalHistorial.abrir !== "function"
+        ) {
+          console.error("[modal-opciones] ModalHistorial no está disponible.");
+          return;
+        }
+
+        modalElement.style.display = "none";
+        window.ModalHistorial.abrir(sobre);
+
+        return;
 
       case "devolver-front":
         modalDestino = window.ModalDisponibilidad;

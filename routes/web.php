@@ -100,4 +100,9 @@ $router->post('/api/sobres/{id_sobre}/devolver-front', [
     'returnToFrontFromScanner',
 ]);
 
+$router->get('/api/sobres/{id_sobre}/historial', [
+    $sobreController,
+    'historyFromScanner',
+]);
+
 return $router;

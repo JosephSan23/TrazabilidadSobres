@@ -338,6 +338,29 @@ final class SobreController
         ]);
     }
 
+    public function historyFromScanner(array $parameters = []): void
+    {
+        try {
+            $idSobre = $this->positiveInteger(
+                $parameters['id_sobre'] ?? null,
+                'El identificador del sobre no es válido.'
+            );
+
+            $movimientos = $this->historialMovimientoService
+                ->listBySobreId($idSobre);
+
+            $this->json([
+                'ok' => true,
+                'movimientos' => $movimientos,
+            ]);
+        } catch (\Throwable $exception) {
+            $this->json([
+                'ok' => false,
+                'message' => $exception->getMessage(),
+            ], 422);
+        }
+    }
+
     // PENDIENTE VER COMO FUNCIONA EL LOGIN Y QUE RECIBE $_SESSION
 
     // public function store(array $parameters = []): void
