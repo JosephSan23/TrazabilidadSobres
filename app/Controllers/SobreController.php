@@ -74,9 +74,15 @@ final class SobreController
      * @param array<string, string> $parameters
      */
     public function index(array $parameters = []): void
-    {
+    {   
+        $estado = (string) ($_GET['estado'] ?? 'todos');
+        if (!in_array($estado, ['todos', 'creados', 'gestion'], true)) 
+            {
+                $estado = 'todos';
+            }
         $filters = [
-            'busqueda' => trim((string) ($_GET['busqueda'] ?? '')),
+                'busqueda' => trim((string) ($_GET['busqueda'] ?? '')),
+                'estado' => $estado,
         ];
 
         $page = filter_input(

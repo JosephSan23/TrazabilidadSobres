@@ -263,6 +263,12 @@ final class SobreRepository
             $parameters['busqueda3'] = $valor;
         }
 
+        $estado = (string) ($filters['estado'] ?? 'todos');
+
+        if ($estado !== 'todos') {
+            $conditions[] = $this->condicionEstado($estado);
+        }
+
         return [
             $conditions === []
                 ? ''
@@ -397,5 +403,47 @@ final class SobreRepository
         ]);
 
         $statement->closeCursor();
+    }
+
+    private function condicionEstado(string $estado): string
+    {
+        $sinResponsable = "(s.nombre_responsable IS NULL OR TRIM(s.nombre_responsable) = '')";
+
+        return match ($estado) {
+            'creados' => $sinResponsable,
+            'gestion' => "NOT $sinResponsable",
+            default   => '1=1',
+        };
+    }
+
+    public function countByTabs(array $filters): array
+    {
+        // Mismo buscador, pero sin filtrar por pestaña, para que los números no cambien al navegar
+        $filters['estado'] = 'todos';
+        [$where, $parameters] = $this->buildListFilters($filters);
+
+        $sinResponsable = "(s.nombre_responsable IS NULL OR TRIM(s.nombre_responsable) = '')";
+
+        $sql = <<<SQL
+    SELECT
+        COUNT(*) AS todos,
+        COALESCE(SUM(CASE WHEN $sinResponsable THEN 1 ELSE 0 END), 0) AS creados,
+        COALESCE(SUM(CASE WHEN $sinResponsable THEN 0 ELSE 1 END), 0) AS gestion
+    FROM sobre s
+    INNER JOIN tramite t ON t.id_tramite = s.id_tramite
+    INNER JOIN vehiculo v ON v.id_vehiculo = t.id_vehiculo
+    LEFT JOIN ubicaciones u ON u.id_ubicacion = s.id_ubicacion
+    SQL;
+
+        $statement = $this->connection->prepare($sql . $where);
+        $statement->execute($parameters);
+
+        $row = $statement->fetch() ?: [];
+
+        return [
+            'todos'   => (int) ($row['todos'] ?? 0),
+            'creados' => (int) ($row['creados'] ?? 0),
+            'gestion' => (int) ($row['gestion'] ?? 0),
+        ];
     }
 }

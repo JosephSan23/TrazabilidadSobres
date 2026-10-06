@@ -11,6 +11,7 @@ use App\Core\Url;
 /** @var int $currentPage */
 /** @var int $totalPages */
 /** @var int $perPage */
+/** @var int $perPage */
 
 
 $escape = static fn(mixed $value): string => htmlspecialchars(
@@ -18,6 +19,22 @@ $escape = static fn(mixed $value): string => htmlspecialchars(
     ENT_QUOTES,
     'UTF-8'
 );
+
+$tabs = [
+    'todos'       => 'Todos',
+    'creados'     => 'Creados',
+    'gestion'     => 'Gestión',
+    'incompletos' => 'Incompletos',
+    'completos'   => 'Completos',
+    'radicados'   => 'Radicados',
+    'finalizados' => 'Finalizados',
+    'destruccion' => 'Destrucción'
+];
+
+$estadoActual = $_GET['estado'] ?? 'todos';
+if (!isset($tabs[$estadoActual])) {
+    $estadoActual = 'todos';
+}
 
 $firstRecord = $totalSobres === 0
     ? 0
@@ -98,6 +115,7 @@ $asset = fn(string $ruta) => $escape(Url::to($ruta, ['v' => '1']));
                                     value="<?= $escape($filters['busqueda']) ?>"
                                     placeholder="Buscar por código, placa, trámite...">
                             </div>
+                            <input type="hidden" name="estado" value="<?= $escape($estadoActual) ?>">
                         </form>
                     </div>
 
@@ -107,34 +125,6 @@ $asset = fn(string $ruta) => $escape(Url::to($ruta, ['v' => '1']));
                             Modo asignación masiva
                         </label>
                     </div>
-
-                    <div class="custodia-results-row__actions">
-                        <div class="filter-tabs">
-                            <a href="?estado=todos" class="filter-tab filter-tab--todos is-active">Todos</a>
-                            <a href="?estado=creados" class="filter-tab filter-tab--creados">Creados</a>
-                            <a href="?estado=gestion" class="filter-tab filter-tab--gestion">Gestión</a>
-                            <a href="?estado=incompletos" class="filter-tab filter-tab--incompletos">Incompletos</a>
-                            <a href="?estado=completos" class="filter-tab filter-tab--completos">Completos</a>
-                            <a href="?estado=radicados" class="filter-tab filter-tab--radicados">Radicados</a>
-                            <a href="?estado=finalizados" class="filter-tab filter-tab--finalizados">Finalizados</a>
-                        </div>
-                    </div>
-                    <!-- <?php
-                    $tabs = [
-                        'todos'       => 'Todos',
-                        'creados'     => 'Creados',
-                        'gestion'     => 'Gestión',
-                        'incompletos' => 'Incompletos',
-                        'completos'   => 'Completos',
-                        'radicados'   => 'Radicados',
-                        'finalizados' => 'Finalizados',
-                    ];
-
-                    $estadoActual = $_GET['estado'] ?? 'todos';
-                    if (!isset($tabs[$estadoActual])) {
-                        $estadoActual = 'todos';
-                    }
-                    ?>
                     <div class="custodia-results-row__actions">
                         <div class="filter-tabs">
                             <?php foreach ($tabs as $clave => $etiqueta): ?>
@@ -151,9 +141,8 @@ $asset = fn(string $ruta) => $escape(Url::to($ruta, ['v' => '1']));
                                 </a>
                             <?php endforeach; ?>
                         </div>
-                    </div> -->
+                    </div>
                 </div>
-
                 <div
                     class="custodia-grid"
                     id="tabla-sobres"
